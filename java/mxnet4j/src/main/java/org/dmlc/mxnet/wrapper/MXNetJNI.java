@@ -56,5 +56,36 @@ public class MXNetJNI {
     public final static native int MXSymbolGetOutput(long symbol, int index, long[] out);
     public final static native int MXSymbolGetInternals(long symbol, long[] out);
     public final static native int MXSymbolCreateFromFile(String fname, long[] out);
-    
+    public final static native int MXSymbolCreateFromJSON(String json,long[] out);
+    public final static native int MXSymbolSaveToFile(long symbol, String fname);
+    public final static native int MXSymbolSaveToJSON(long symbol, String[] out_json);
+    public final static native int MXSymbolFree(long symbol);
+    public final static native int MXSymbolCopy(long symbol, long[] out);
+    public final static native int MXSymbolPrint(long symbol, String[] out_str);
+    public final static native int MXSymbolListArguments(long symbol, String[][] out_str_array);
+    public final static native int MXSymbolListOutputs(long symbol, String[][] out_str_array);
+    public final static native int MXSymbolListAuxiliaryStates(long symbol, String[][] out_str_array);
+    public final static native int MXSymbolCompose(long sym, String name, String[] keys, long[] args);
+    public final static native int MXSymbolGrad(long jarg1, long jarg2, long jarg3, long jarg4);
+    public final static native int MXSymbolInferShape(long jarg1, long jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7, long jarg8, long jarg9, long jarg10, long jarg11, long jarg12, long jarg13, long jarg14, long jarg15);
+    public final static native int MXExecutorPrint(long jarg1, long jarg2);
+    public final static native int MXExecutorForward(long jarg1, int jarg2);
+    public final static native int MXExecutorBackward(long jarg1, long jarg2, long jarg3);
+    public final static native int MXExecutorOutputs(long jarg1, long jarg2, long jarg3);
+    public final static native int MXExecutorBind(long jarg1, int jarg2, int jarg3, long jarg4, long jarg5, long jarg6, long jarg7, long jarg8, long jarg9, long jarg10);
+    public final static native int MXListDataIters(long jarg1, long jarg2);
+    public final static native int MXDataIterGetIterInfo(long jarg1, long jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7);
+    public final static native int MXDataIterCreateIter(long jarg1, long jarg2, long jarg3, long jarg4, long jarg5);
+    public final static native int MXDataIterFree(long jarg1);
+    public final static native int MXDataIterBeforeFirst(long jarg1);
+    public final static native int MXDataIterNext(long jarg1, long jarg2);
+    public final static native int MXDataIterGetLabel(long jarg1, long jarg2);
+    public final static native int MXDataIterGetData(long jarg1, long jarg2);
+    public final static native int MXDataIterGetPadNum(long jarg1, long jarg2);
+    public final static native int MXKVStoreCreate(String jarg1, long jarg2);
+    public final static native int MXKVStoreFree(long jarg1);
+    public final static native int MXKVStoreInit(long jarg1, long jarg2, long jarg3, long jarg4);
+    public final static native int MXKVStorePush(long jarg1, long jarg2, long jarg3, long jarg4, int jarg5);
+    public final static native int MXKVStorePull(long jarg1, long jarg2, long jarg3, long jarg4, int jarg5);
+    public final static native int MXKVStoreSetUpdater(long jarg1, long jarg2);
 }
