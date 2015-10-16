@@ -40,7 +40,7 @@ public class MXNetHandles {
         }
         
         @Override
-        protected void finalize() {
+        protected void finalize(){
             delete();
         }
     
@@ -60,6 +60,4 @@ public class MXNetHandles {
             }
         }    
     }
-    
-    
 }

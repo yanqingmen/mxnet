@@ -66,8 +66,8 @@ public class MXNetJNI {
     public final static native int MXSymbolListOutputs(long symbol, String[][] out_str_array);
     public final static native int MXSymbolListAuxiliaryStates(long symbol, String[][] out_str_array);
     public final static native int MXSymbolCompose(long sym, String name, String[] keys, long[] args);
-    public final static native int MXSymbolGrad(long jarg1, long jarg2, long jarg3, long jarg4);
-    public final static native int MXSymbolInferShape(long jarg1, long jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7, long jarg8, long jarg9, long jarg10, long jarg11, long jarg12, long jarg13, long jarg14, long jarg15);
+    public final static native int MXSymbolGrad(long sym, String[] wrt, long[] out);
+    public final static native int MXSymbolInferShape(long sym, long jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7, long jarg8, long jarg9, long jarg10, long jarg11, long jarg12, long jarg13, long jarg14, long jarg15);
     public final static native int MXExecutorPrint(long jarg1, long jarg2);
     public final static native int MXExecutorForward(long jarg1, int jarg2);
     public final static native int MXExecutorBackward(long jarg1, long jarg2, long jarg3);
