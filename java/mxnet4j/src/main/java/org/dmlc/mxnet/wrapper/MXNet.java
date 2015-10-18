@@ -452,5 +452,225 @@ public class MXNet {
         return out;
     }
     
+    /**
+     * Create a Symbol by grouping list of symbols together
+     * @param symbols array of symbol handles
+     * @return SymbolHandle
+     * @throws MXNetError 
+     */
+    public static SymbolHandle MXSymbolCreateGroup(SymbolHandle[] symbols) throws MXNetError {
+        SymbolHandle out = new SymbolHandle();
+        int ret = MXNetJNI.MXSymbolCreateGroup(MXNetHandles.transferHandleArray(symbols), 
+                out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Load a symbol from a json file.
+     * @param fname the file name.
+     * @return SymbolHandle
+     * @throws MXNetError 
+     */
+    public static SymbolHandle MXSymbolCreateFromFile(String fname) throws MXNetError {
+        SymbolHandle out = new SymbolHandle();
+        int ret = MXNetJNI.MXSymbolCreateFromFile(fname, out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Load a symbol from a json string.
+     * @param json the json string.
+     * @return SymbolHandle
+     * @throws MXNetError 
+     */
+    public static SymbolHandle MXSymbolCreateFromJSON(String json) throws MXNetError {
+        SymbolHandle out = new SymbolHandle();
+        int ret = MXNetJNI.MXSymbolCreateFromJSON(json, out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Save a symbol into a json file.
+     * @param symbol the input symbol.
+     * @param fname the file name.
+     * @throws MXNetError 
+     */
+    public static void MXSymbolSaveToFile(SymbolHandle symbol, String fname) throws MXNetError {
+        int ret = MXNetJNI.MXSymbolSaveToFile(symbol.getHandle(), fname);
+        HandleError(ret);
+    }
+    
+    /**
+     * ave a symbol into a json string
+     * @param symbol the input symbol.
+     * @return output json string.
+     * @throws MXNetError 
+     */
+    public static String MXSymbolSaveToJSON(SymbolHandle symbol) throws MXNetError {
+        String[] out = new String[1];
+        int ret = MXNetJNI.MXSymbolSaveToJSON(symbol.getHandle(), out);
+        HandleError(ret);
+        
+        return out[0];
+    }
+    
+    /**
+     * Copy the symbol to another handle
+     * @param symbol the source symbol
+     * @return the result symbol of copy
+     * @throws MXNetError 
+     */
+    public static SymbolHandle MXSymbolCopy(SymbolHandle symbol) throws MXNetError {
+        SymbolHandle out = new SymbolHandle();
+        int ret = MXNetJNI.MXSymbolCopy(symbol.getHandle(), out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Print the content of symbol, used for debug.
+     * @param symbol the symbol
+     * @return the output string of the printing.
+     * @throws MXNetError 
+     */
+    public static String MXSymbolPrint(SymbolHandle symbol) throws MXNetError {
+        String[] out_str = new String[1];
+        int ret = MXNetJNI.MXSymbolPrint(symbol.getHandle(), out_str);
+        HandleError(ret);
+        
+        return out_str[0];
+    }
+    
+    /**
+     * List arguments in the symbol.
+     * @param symbol the symbol
+     * @return output string array
+     * @throws MXNetError 
+     */
+    public static String[] MXSymbolListArguments(SymbolHandle symbol) throws MXNetError {
+        String[][] out_str_array = new String[1][];
+        int ret = MXNetJNI.MXSymbolListArguments(symbol.getHandle(), out_str_array);
+        HandleError(ret);
+        
+        return out_str_array[0];
+    }
+    
+    /**
+     * List returns in the symbol.
+     * @param symbol the symbol
+     * @return output string array
+     * @throws MXNetError 
+     */
+    public static String[] MXSymbolListOutputs(SymbolHandle symbol) throws MXNetError {
+        String[][] out_str_array = new String[1][];
+        int ret = MXNetJNI.MXSymbolListOutputs(symbol.getHandle(), out_str_array);
+        HandleError(ret);
+        
+        return out_str_array[0];
+    }
+    
+    /**
+     * Get a symbol that contains all the internals.
+     * @param symbol The symbol
+     * @return The output symbol whose outputs are all the internals.
+     * @throws MXNetError 
+     */
+    public static SymbolHandle MXSymbolGetInternals(SymbolHandle symbol) throws MXNetError {
+        SymbolHandle out = new SymbolHandle();
+        int ret = MXNetJNI.MXSymbolGetInternals(symbol.getHandle(), out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Get index-th outputs of the symbol.
+     * @param symbol The source symbol
+     * @param index the Index of the output.
+     * @return output symbol whose output are  index-th outputs of the source symbol
+     * @throws MXNetError 
+     */
+    public static SymbolHandle MXSymbolGetOutput(SymbolHandle symbol, 
+            int index) throws MXNetError {
+        SymbolHandle out = new SymbolHandle();
+        int ret = MXNetJNI.MXSymbolGetOutput(symbol.getHandle(), index, out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * List auxiliary states in the symbol.
+     * @param symbol he symbol
+     * @return the output string array
+     * @throws MXNetError 
+     */
+    public static String[] MXSymbolListAuxiliaryStates(SymbolHandle symbol) throws MXNetError {
+        String[][] out_str_array = new String[1][];
+        int ret = MXNetJNI.MXSymbolListAuxiliaryStates(symbol.getHandle(), out_str_array);
+        HandleError(ret);
+        
+        return out_str_array[0];
+    }
+    
+    /**
+     * Compose the symbol on other symbols.
+     * This function will change the sym hanlde.
+     * To achieve function apply behavior, copy the symbol first before apply.
+     * @param sym the symbol to apply
+     * @param name the name of symbol
+     * @param keys key of keyword args
+     * @param args arguments to sym
+     * @throws MXNetError 
+     */
+    public static void MXSymbolCompose(SymbolHandle sym, String name, String[] keys, SymbolHandle[] args) throws MXNetError {
+        int ret = MXNetJNI.MXSymbolCompose(sym.getHandle(), name, keys, MXNetHandles.transferHandleArray(args));
+        HandleError(ret);
+    }
+    
+    /**
+     * Get the gradient graph of the symbol
+     * @param sym symbol to get gradient
+     * @param wrt name of the arguments to get gradient
+     * @return symbol that has gradient
+     * @throws MXNetError 
+     */
+    public static SymbolHandle MXSymbolGrad(SymbolHandle sym, String[] wrt) throws MXNetError {
+        SymbolHandle out = new SymbolHandle();
+        int ret = MXNetJNI.MXSymbolGrad(sym.getHandle(), wrt, out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * MXSymbolInferShape is a little complicated, to do
+    */
+    
+    //--------------------------------------------
+    // Part 4: Executor interface
+    //--------------------------------------------
+    
+    /**
+     * 
+     * @param ex_handle
+     * @return 
+     * @throws org.dmlc.mxnet.wrapper.util.MXNetError 
+     */
+    public static String MXExecutorPrint(ExecutorHandle ex_handle) throws MXNetError {
+        String[] out_str = new String[1];
+        int ret = MXNetJNI.MXExecutorPrint(ex_handle.getHandle(), out_str);
+        HandleError(ret);
+        
+        return out_str[0];
+    }
+    
     
 }

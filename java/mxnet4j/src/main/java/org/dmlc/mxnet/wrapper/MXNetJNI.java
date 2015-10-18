@@ -70,7 +70,8 @@ public class MXNetJNI {
     public final static native int MXSymbolListAuxiliaryStates(long symbol, String[][] out_str_array);
     public final static native int MXSymbolCompose(long sym, String name, String[] keys, long[] args);
     public final static native int MXSymbolGrad(long sym, String[] wrt, long[] out);
-    public final static native int MXSymbolInferShape(long sym, String[] keys, int[] arg_ind_ptr, int[] arg_shape_data, int[] in_shape_size, int[][] in_shape_ndim, int[][][] in_shape_data, int[] out_shape_size, int[][] out_shape_ndim, int[][][] out_shape_data, int[] aux_shape_size, int[][] aux_shape_ndim, int[][][] aux_shape_data, int[] complete);
+    //to do, this func is a little complicated
+    public final static native int MXSymbolInferShape(long sym, String[] keys, int[] arg_ind_ptr, int[] arg_shape_data, int[][] in_shape_ndim, long[][] in_shape_data, int[] out_shape_size, int[][] out_shape_ndim, int[][][] out_shape_data, int[] aux_shape_size, int[][] aux_shape_ndim, int[][][] aux_shape_data, int[] complete);
     //executor funcs
     public final static native int MXExecutorPrint(long ex_handle, String[] out_str);
     public final static native int MXExecutorForward(long ex_handle, int is_train);
