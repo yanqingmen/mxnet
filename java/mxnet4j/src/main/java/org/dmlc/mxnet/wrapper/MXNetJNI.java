@@ -23,21 +23,24 @@ package org.dmlc.mxnet.wrapper;
  * @author hzx
  */
 public class MXNetJNI {
+    public final static native String MXGetLastError();
     public final static native int MXRandomSeed(int seed);
     public final static native int MXNotifyShutdown();
     //ndarry
     public final static native int MXNDArrayCreateNone(long[] out);
-    public final static native int MXNDArrayCreate(long[] shape, long ndim, int dev_type, int dev_id, int delay_alloc, long[] out);
-    public final static native int MXNDArrayLoadFromRawBytes(long buf, int size, long[] out);
+    public final static native int MXNDArrayCreate(int[] shape, long ndim, int dev_type, int dev_id, int delay_alloc, long[] out);
+    public final static native int MXNDArrayLoadFromRawBytes(byte[] buf, long[] out);
     public final static native int MXNDArraySaveRawBytes(long handle, String[] out_buf);
     public final static native int MXNDArraySyncCopyFromCPU(long handle, float[] data);
-    public final static native int MXNDArraySyncCopyToCPU(long handle, float[] data);
+    public final static native int MXNDArraySyncCopyToCPU(long handle, float[] data, int size);
+    public final static native int MXNDArrayWaitToRead(long handle);
     public final static native int MXNDArrayWaitToWrite(long handle);
+    public final static native int MXNDarrayWaitAll();
     public final static native int MXNDArraySave(String fname, long[] args, String[] keys);
     public final static native int MXNDArrayLoad(String fname, long[][] out_arr, String[][] out_names);
     public final static native int MXNDArrayFree(long handle);
     public final static native int MXNDArraySlice(long handle, int slice_begin, int slice_end, long[] out);
-    public final static native int MXNDArrayGetShape(long handle, long[][] out_pdata);
+    public final static native int MXNDArrayGetShape(long handle, int[][] out_pdata);
     public final static native int MXNDArrayGetData(long handle, float[][] out_pdata);
     public final static native int MXNDArrayGetContext(long handle, int[] out_dev_type, int[] out_dev_id);
     //funcs
@@ -67,25 +70,29 @@ public class MXNetJNI {
     public final static native int MXSymbolListAuxiliaryStates(long symbol, String[][] out_str_array);
     public final static native int MXSymbolCompose(long sym, String name, String[] keys, long[] args);
     public final static native int MXSymbolGrad(long sym, String[] wrt, long[] out);
-    public final static native int MXSymbolInferShape(long sym, long jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7, long jarg8, long jarg9, long jarg10, long jarg11, long jarg12, long jarg13, long jarg14, long jarg15);
-    public final static native int MXExecutorPrint(long jarg1, long jarg2);
-    public final static native int MXExecutorForward(long jarg1, int jarg2);
-    public final static native int MXExecutorBackward(long jarg1, long jarg2, long jarg3);
-    public final static native int MXExecutorOutputs(long jarg1, long jarg2, long jarg3);
-    public final static native int MXExecutorBind(long jarg1, int jarg2, int jarg3, long jarg4, long jarg5, long jarg6, long jarg7, long jarg8, long jarg9, long jarg10);
-    public final static native int MXListDataIters(long jarg1, long jarg2);
-    public final static native int MXDataIterGetIterInfo(long jarg1, long jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7);
-    public final static native int MXDataIterCreateIter(long jarg1, long jarg2, long jarg3, long jarg4, long jarg5);
-    public final static native int MXDataIterFree(long jarg1);
-    public final static native int MXDataIterBeforeFirst(long jarg1);
-    public final static native int MXDataIterNext(long jarg1, long jarg2);
-    public final static native int MXDataIterGetLabel(long jarg1, long jarg2);
-    public final static native int MXDataIterGetData(long jarg1, long jarg2);
-    public final static native int MXDataIterGetPadNum(long jarg1, long jarg2);
-    public final static native int MXKVStoreCreate(String jarg1, long jarg2);
-    public final static native int MXKVStoreFree(long jarg1);
-    public final static native int MXKVStoreInit(long jarg1, long jarg2, long jarg3, long jarg4);
-    public final static native int MXKVStorePush(long jarg1, long jarg2, long jarg3, long jarg4, int jarg5);
-    public final static native int MXKVStorePull(long jarg1, long jarg2, long jarg3, long jarg4, int jarg5);
-    public final static native int MXKVStoreSetUpdater(long jarg1, long jarg2);
+    public final static native int MXSymbolInferShape(long sym, String[] keys, int[] arg_ind_ptr, int[] arg_shape_data, int[] in_shape_size, int[][] in_shape_ndim, int[][][] in_shape_data, int[] out_shape_size, int[][] out_shape_ndim, int[][][] out_shape_data, int[] aux_shape_size, int[][] aux_shape_ndim, int[][][] aux_shape_data, int[] complete);
+    //executor funcs
+    public final static native int MXExecutorPrint(long ex_handle, String[] out_str);
+    public final static native int MXExecutorForward(long ex_handle, int is_train);
+    public final static native int MXExecutorBackward(long ex_handle, long[] head_grads);
+    public final static native int MXExecutorOutputs(long ex_handle, long[][] out);
+    public final static native int MXExecutorBind(long symbol_handle, int dev_type, int dev_id, long[] in_args, long[] arg_grad_store, int gred_req_type, long[] aux_states, long[] ex_handle);
+    //DataIter funcs
+    public final static native int MXListDataIters(int[] out_size, long[][] out_array);
+    public final static native int MXDataIterGetIterInfo(long creator, String[] name, String[] description, String[][] arg_names, String[][] arg_type_infos, String[][] aeg_descriptions);
+    public final static native int MXDataIterCreateIter(long creator, String[] keys, String[] vals, long[] out);
+    public final static native int MXDataIterFree(long handle);
+    public final static native int MXDataIterBeforeFirst(long handle);
+    public final static native int MXDataIterNext(long handle, int[] out);
+    public final static native int MXDataIterGetLabel(long handle, long[] out);
+    public final static native int MXDataIterGetData(long handle, long[] out);
+    public final static native int MXDataIterGetPadNum(long handle,  int[] pad);
+    //KV store funcs
+    public final static native int MXKVStoreCreate(String type, long[] out);
+    public final static native int MXKVStoreFree(long handle);
+    public final static native int MXKVStoreInit(long handle, int[] keys, long[] vals);
+    public final static native int MXKVStorePush(long handle, int[] keys, long[] vals, int priority);
+    public final static native int MXKVStorePull(long handle, int[] keys, long[] vals, int priority);
+    //this wrapper func is not supported at current
+    public final static native int MXKVStoreSetUpdater(long handle, long updater);
 }
