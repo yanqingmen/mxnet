@@ -77,9 +77,9 @@ public class MXNetJNI {
     public final static native int MXExecutorForward(long ex_handle, int is_train);
     public final static native int MXExecutorBackward(long ex_handle, long[] head_grads);
     public final static native int MXExecutorOutputs(long ex_handle, long[][] out);
-    public final static native int MXExecutorBind(long symbol_handle, int dev_type, int dev_id, long[] in_args, long[] arg_grad_store, int gred_req_type, long[] aux_states, long[] ex_handle);
+    public final static native int MXExecutorBind(long symbol_handle, int dev_type, int dev_id, long[] in_args, long[] arg_grad_store, int[] gred_req_type, long[] aux_states, long[] ex_handle);
     //DataIter funcs
-    public final static native int MXListDataIters(int[] out_size, long[][] out_array);
+    public final static native int MXListDataIters(long[][] out_array);
     public final static native int MXDataIterGetIterInfo(long creator, String[] name, String[] description, String[][] arg_names, String[][] arg_type_infos, String[][] aeg_descriptions);
     public final static native int MXDataIterCreateIter(long creator, String[] keys, String[] vals, long[] out);
     public final static native int MXDataIterFree(long handle);

@@ -133,10 +133,22 @@ public class MXNetHandles {
     public static class ExecutorHandle extends BaseHandle {
         @Override
         public void delete() {
-            //nothing need to free this handle
+            //nothing need to free for this handle
             this.handle[0] = 0;
             this.isInit = false;
         }        
+    }
+    
+    /**
+     * handle for DataIterCreator
+     */
+    public static class DataIterCreator extends BaseHandle {
+        @Override
+        public void delete() {
+            //nothing need to free for this handle
+            this.handle[0] = 0;
+            this.isInit = false;
+        }       
     }
     
     /**
@@ -180,4 +192,4 @@ public class MXNetHandles {
         }
         return args;
     }
-}
+ }

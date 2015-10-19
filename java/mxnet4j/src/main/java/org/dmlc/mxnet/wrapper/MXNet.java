@@ -18,6 +18,7 @@ package org.dmlc.mxnet.wrapper;
 
 import org.dmlc.mxnet.wrapper.MXNetHandles.*;
 import org.dmlc.mxnet.wrapper.util.MXAtomicSymbolInfo;
+import org.dmlc.mxnet.wrapper.util.MXDataIterInfo;
 import org.dmlc.mxnet.wrapper.util.MXFuncDesc;
 import org.dmlc.mxnet.wrapper.util.MXFuncInfo;
 import org.dmlc.mxnet.wrapper.util.MXNetError;
@@ -651,7 +652,7 @@ public class MXNet {
     }
     
     /**
-     * MXSymbolInferShape is a little complicated, to do
+     * MXSymbolInferShape is a little complicated, to do ...
     */
     
     //--------------------------------------------
@@ -659,7 +660,7 @@ public class MXNet {
     //--------------------------------------------
     
     /**
-     * 
+     * Print the content of execution plan, used for debug.
      * @param ex_handle
      * @return 
      * @throws org.dmlc.mxnet.wrapper.util.MXNetError 
@@ -672,5 +673,267 @@ public class MXNet {
         return out_str[0];
     }
     
+    /**
+     * Executor forward method
+     * @param handle executor handle
+     * @param is_train bool value to indicate whether the forward pass is for evaluation
+     * @throws MXNetError 
+     */
+    public static void MXExecutorForward(ExecutorHandle handle, int is_train) throws MXNetError {
+        int ret = MXNetJNI.MXExecutorForward(handle.getHandle(), is_train);
+        HandleError(ret);
+    }
     
+    /**
+     * Excecutor run backward
+     * @param handle execute handle
+     * @param head_grads 
+     * @throws MXNetError NDArray handle for heads' gradient
+     */
+    public static void MXExecutorBackward(ExecutorHandle handle, NDArrayHandle[] head_grads) throws MXNetError {
+        int ret = MXNetJNI.MXExecutorBackward(handle.getHandle(), MXNetHandles.transferHandleArray(head_grads));
+        HandleError(ret);
+    }
+    
+    /**
+     * Get executor's head NDArray
+     * @param handle executor handle
+     * @return output narray handles
+     * @throws MXNetError 
+     */
+    public static NDArrayHandle[] MXExecutorOutputs(ExecutorHandle handle) throws MXNetError {
+        long[][] out = new long[1][];
+        int ret = MXNetJNI.MXExecutorOutputs(handle.getHandle(), out);
+        HandleError(ret);
+        
+        NDArrayHandle[] handles = new NDArrayHandle[out[0].length];
+        for(int i=0; i<handles.length; i++){
+            handles[i] = new NDArrayHandle();
+            handles[i].setHandle(out[0][i]);
+        }
+        
+        return handles;
+    }
+    
+    /**
+     * Generate Executor from symbol
+     * @param symbol_handle symbol handle
+     * @param dev_type device type
+     * @param dev_id device id
+     * @param in_args in args array
+     * @param arg_grad_store  arg grads handle array
+     * @param grad_req_type grad req array
+     * @param aux_states auxiliary states array
+     * @return
+     * @throws MXNetError 
+     */
+    public static ExecutorHandle MXExecutorBind(SymbolHandle symbol_handle, 
+            int dev_type, int dev_id, NDArrayHandle[] in_args, 
+            NDArrayHandle[] arg_grad_store, int[] grad_req_type, 
+            NDArrayHandle[] aux_states) throws MXNetError {
+        ExecutorHandle ex_handle = new ExecutorHandle();
+        
+        int ret = MXNetJNI.MXExecutorBind(symbol_handle.getHandle() , dev_type,
+                dev_id, MXNetHandles.transferHandleArray(in_args), 
+                MXNetHandles.transferHandleArray(arg_grad_store), grad_req_type, 
+                MXNetHandles.transferHandleArray(aux_states), ex_handle.getHandleRef());
+        HandleError(ret);
+        
+        return ex_handle;
+    }
+    
+    //--------------------------------------------
+    // Part 5: IO Interface
+    //--------------------------------------------
+    
+    /**
+     * List all the available iterator entries
+     * @return the output iteratos entries
+     * @throws org.dmlc.mxnet.wrapper.util.MXNetError 
+     */
+    public static DataIterCreator[] MXListDataIters() throws MXNetError {
+        long[][] out_array = new long[1][];
+        int ret = MXNetJNI.MXListDataIters(out_array);
+        HandleError(ret);
+        
+        DataIterCreator[] creators = new DataIterCreator[out_array[0].length];
+        for(int i=0; i<creators.length; i++) {
+            creators[i] = new DataIterCreator();
+            creators[i].setHandle(out_array[0][i]);
+        }
+        return creators;
+    }
+    
+    /**
+     * Init an iterator, init with parameters
+     * @param handle handle of the iterator creator
+     * @param keys parameter keys
+     * @param vals parameter values
+     * @return DataIterHandle
+     * @throws MXNetError 
+     */
+    public static DataIterHandle MXDataIterCreateIter(
+            DataIterCreator handle, String[] keys, String[] vals) throws MXNetError {
+        DataIterHandle out = new DataIterHandle();
+        int ret = MXNetJNI.MXDataIterCreateIter(handle.getHandle(), 
+                keys, vals, out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Get the detailed information about data iterator.
+     * @param creator the DataIterCreator.
+     * @return MXDataIterInfo
+     * @throws MXNetError 
+     */
+    public static MXDataIterInfo MXDataIterGetIterInfo(DataIterCreator creator) 
+            throws MXNetError {
+        String[] name = new String[1];
+        String[] description = new String[1];
+        String[][] arg_names = new String[1][];
+        String[][] arg_type_infos = new String[1][];
+        String[][] arg_descriptions = new String[1][];
+        
+        int ret = MXNetJNI.MXDataIterGetIterInfo(
+                creator.getHandle(), name, description, 
+                arg_names, arg_type_infos, arg_descriptions);
+        
+        HandleError(ret);
+        return new MXDataIterInfo(name[0], description[0], 
+                arg_names[0], arg_type_infos[0], arg_descriptions[0]);
+    }
+    
+    /**
+     * Move iterator to next position
+     * @param handle the handle to iterator
+     * @return value of next
+     * @throws MXNetError 
+     */
+    public static int  MXDataIterNext(DataIterHandle handle)
+            throws MXNetError {
+        int[] out = new int[1];
+        int ret = MXNetJNI.MXDataIterNext(handle.getHandle(), out);
+        HandleError(ret);
+        
+        return out[0];
+    }
+    
+    /**
+     * Call iterator.Reset
+     * @param handle the handle to iterator
+     * @throws MXNetError 
+     */
+    public static void MXDataIterBeforeFirst(DataIterHandle handle)
+            throws MXNetError {
+        int ret = MXNetJNI.MXDataIterBeforeFirst(handle.getHandle());
+        HandleError(ret);
+    }
+    
+    /**
+     * Get the handle to the NDArray of underlying data
+     * @param handle data iterator handle
+     * @return handle to underlying data NDArray
+     * @throws MXNetError 
+     */
+    public static NDArrayHandle MXDataIterGetData(DataIterHandle handle)
+            throws MXNetError {
+        NDArrayHandle out = new NDArrayHandle();
+        int ret = MXNetJNI.MXDataIterGetData(handle.getHandle(), out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Get the padding number in current data batch
+     * @param handle data iterator handle
+     * @return pad number
+     * @throws MXNetError 
+     */
+    public static int MXDataIterGetPadNum(DataIterHandle handle) throws MXNetError {
+        int[] pad = new int[1];
+        int ret = MXNetJNI.MXDataIterGetPadNum(handle.getHandle(), pad);
+        HandleError(ret);
+        
+        return pad[0];
+    }
+    
+    /**
+     * Get the handle to the NDArray of underlying label
+     * @param handle data iterator handle
+     * @return handle to underlying label NDArray
+     * @throws MXNetError 
+     */
+    public static NDArrayHandle MXDataIterGetLabel(DataIterHandle handle)
+            throws MXNetError {
+        NDArrayHandle out = new NDArrayHandle();
+        int ret = MXNetJNI.MXDataIterGetLabel(handle.getHandle(), out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    //--------------------------------------------
+    // Part 5: KVStore interface
+    //--------------------------------------------
+    
+    /**
+     * Create a kvstore
+     * @param type type of KVStore
+     * @return output type of KVStore
+     * @throws MXNetError 
+     */
+    public static KVStoreHandle MXKVStoreCreate(String type) throws MXNetError {
+        KVStoreHandle out = new KVStoreHandle();
+        int ret = MXNetJNI.MXKVStoreCreate(type, out.getHandleRef());
+        HandleError(ret);
+        
+        return out;
+    }
+    
+    /**
+     * Init a list of (key,value) pairs in kvstore
+     * @param handle handle to the kvstore
+     * @param keys list of keys
+     * @param vals list of values
+     * @throws MXNetError 
+     */
+    public static void MXKVStoreInit(KVStoreHandle handle, 
+            int[] keys, NDArrayHandle[] vals) throws MXNetError {
+        int ret = MXNetJNI.MXKVStoreInit(handle.getHandle(), keys, 
+                MXNetHandles.transferHandleArray(vals));
+        HandleError(ret);
+    }
+    
+    /**
+     * Push a list of (key,value) pairs to kvstore
+     * @param handle handle to the kvstore
+     * @param keys list of keys
+     * @param vals list of values
+     * @param priority the priority of the action
+     * @throws MXNetError 
+     */
+    public static void MXKVStorePush(KVStoreHandle handle, 
+            int[] keys, NDArrayHandle[] vals, int priority) throws MXNetError {
+        int ret = MXNetJNI.MXKVStorePush(handle.getHandle(), keys, 
+                MXNetHandles.transferHandleArray(vals), priority);
+        HandleError(ret);
+    }
+    
+    /**
+     * pull a list of (key, value) pairs from the kvstore
+     * @param handle handle to the kvstore
+     * @param keys list of keys
+     * @param vals list of values
+     * @param priority priority of the action
+     * @throws MXNetError 
+     */
+    public static void MXKVStorePull(KVStoreHandle handle, 
+            int[] keys, NDArrayHandle[] vals, int priority) throws MXNetError {
+        int ret = MXNetJNI.MXKVStorePull(handle.getHandle(), keys, 
+                MXNetHandles.transferHandleArray(vals), priority);
+        HandleError(ret);
+    }
 }
