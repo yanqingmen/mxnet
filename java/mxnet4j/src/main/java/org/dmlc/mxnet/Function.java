@@ -15,18 +15,27 @@
  */
 package org.dmlc.mxnet;
 
-import org.dmlc.mxnet.wrapper.MXNetHandles.NDArrayHandle;
+import org.dmlc.mxnet.wrapper.MXNet;
+import org.dmlc.mxnet.wrapper.MXNetHandles.FunctionHandle;
+import org.dmlc.mxnet.wrapper.util.MXFuncDesc;
+import org.dmlc.mxnet.wrapper.util.MXFuncInfo;
+import org.dmlc.mxnet.wrapper.util.MXNetError;
+
 
 /**
- * NDArray is basic ndarray/Tensor like data structure in mxnet.
+ * Function class for mxnet
  * @author hzx
  */
-public class NDArray {
-    NDArrayHandle handle;
-    boolean writable;
+public class Function{
+    FunctionHandle handle;
+    MXFuncDesc desc;
+    MXFuncInfo info;
     
-    public NDArray(NDArrayHandle handle, boolean writable) {
+    public Function(FunctionHandle handle) throws MXNetError {
         this.handle = handle;
-        this.writable = writable;
+        this.desc = MXNet.MXFuncDescribe(handle);
+        this.info = MXNet.MXFuncGetInfo(handle);
     }
+
+    
 }

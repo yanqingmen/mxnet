@@ -34,7 +34,7 @@ public class MXNet {
      * @param ret
      * @throws MXNetError 
      */
-    public static void HandleError(int ret) throws MXNetError {
+    public static void CheckCall(int ret) throws MXNetError {
         if(ret != 0) {
             throw new MXNetError(MXGetLastError());
         }
@@ -63,7 +63,7 @@ public class MXNet {
      */
     public static void MXNotifyShutdown() throws MXNetError {
         int ret = MXNetJNI.MXNotifyShutdown();
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -76,7 +76,7 @@ public class MXNet {
     public static NDArrayHandle MXNDArrayCreateNone() throws MXNetError {
         NDArrayHandle handle = new NDArrayHandle();
         int ret = MXNetJNI.MXNDArrayCreateNone(handle.getHandleRef());
-        HandleError(ret);        
+        CheckCall(ret);        
         handle.setInit();
         return handle;
     }
@@ -93,7 +93,7 @@ public class MXNet {
     public static NDArrayHandle MXNDArrayCreate(int[] shape, int dev_type, int dev_id, int delay_alloc) throws MXNetError {
         NDArrayHandle handle = new NDArrayHandle();
         int ret = MXNetJNI.MXNDArrayCreate(shape, dev_id, dev_type, dev_id, delay_alloc, handle.getHandleRef());
-        HandleError(ret);        
+        CheckCall(ret);        
         handle.setInit();
         return handle;
     }
@@ -107,7 +107,7 @@ public class MXNet {
     public static NDArrayHandle MXNDArrayLoadFromRawBytes(String buf) throws MXNetError {
         NDArrayHandle handle = new NDArrayHandle();
         int ret = MXNetJNI.MXNDArrayLoadFromRawBytes(buf.getBytes(), handle.getHandleRef());
-        HandleError(ret);
+        CheckCall(ret);
         handle.setInit();
         return handle;
     }
@@ -121,7 +121,7 @@ public class MXNet {
     public static String MXNDArraySaveRawBytes(NDArrayHandle handle) throws MXNetError {
         String[] out_buf = new String[1];
         int ret = MXNetJNI.MXNDArraySaveRawBytes(handle.getHandle(), out_buf);
-        HandleError(ret);
+        CheckCall(ret);
         return out_buf[0];
     }
     
@@ -135,7 +135,7 @@ public class MXNet {
     public static void MXNDArraySave(String fname, NDArrayHandle[] handles, String[] keys) throws MXNetError {
         long[] args = MXNetHandles.transferHandleArray(handles);
         int ret = MXNetJNI.MXNDArraySave(fname, args, keys);
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -148,7 +148,7 @@ public class MXNet {
         long[][] out_arr = new long[1][];
         String[][] out_names = new String[1][];
         int ret = MXNetJNI.MXNDArrayLoad(fname, out_arr, out_names);
-        HandleError(ret);
+        CheckCall(ret);
         NDArrayHandle[] handles = new NDArrayHandle[out_arr[0].length];
         for(int i=0; i>handles.length; i++) {
             handles[i] = new NDArrayHandle();
@@ -173,7 +173,7 @@ public class MXNet {
      */
     public static void MXNDArraySyncCopyFromCPU(NDArrayHandle handle, float[] data) throws MXNetError {
         int ret = MXNetJNI.MXNDArraySyncCopyFromCPU(handle.getHandle(), data);
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -191,7 +191,7 @@ public class MXNet {
         //to do the size transfer between memory size and array size?
         float[] data = new float[size]; //?
         int ret = MXNetJNI.MXNDArraySyncCopyToCPU(handle.getHandle(), data, size);
-        HandleError(ret);
+        CheckCall(ret);
         return data;
     }
     
@@ -203,7 +203,7 @@ public class MXNet {
      */
     public static void MXNDArrayWaitToRead(NDArrayHandle handle) throws MXNetError {
         int ret = MXNetJNI.MXNDArrayWaitToRead(handle.getHandle());
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -214,7 +214,7 @@ public class MXNet {
      */
     public static void MXNDArrayWaitToWrite(NDArrayHandle handle) throws MXNetError {
         int ret = MXNetJNI.MXNDArrayWaitToWrite(handle.getHandle());
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -223,7 +223,7 @@ public class MXNet {
      */
     public static void MXNDArrayWaitAll() throws MXNetError {
         int ret = MXNetJNI.MXNDarrayWaitAll();
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -237,7 +237,8 @@ public class MXNet {
     public static NDArrayHandle MXNDArraySlice(NDArrayHandle handle, int slice_begin, int slice_end) throws MXNetError {
         NDArrayHandle tHandle = new NDArrayHandle();
         int ret = MXNetJNI.MXNDArraySlice(handle.getHandle(), slice_begin, slice_end, tHandle.getHandleRef());
-        HandleError(ret);
+        CheckCall(ret);
+        tHandle.setInit();
         return tHandle;
     }
     
@@ -250,7 +251,7 @@ public class MXNet {
     public static int[] MXNDArrayGetShape(NDArrayHandle handle) throws MXNetError {
         int[][] out_pdata = new int[1][];
         int ret = MXNetJNI.MXNDArrayGetShape(handle.getHandle(), out_pdata);
-        HandleError(ret);
+        CheckCall(ret);
         return out_pdata[0];
     }
     
@@ -263,7 +264,7 @@ public class MXNet {
     public static float[] MXNDArrayGetData(NDArrayHandle handle) throws MXNetError {
         float[][] out_pdata = new float[1][];
         int ret = MXNetJNI.MXNDArrayGetData(handle.getHandle(), out_pdata);
-        HandleError(ret);
+        CheckCall(ret);
         return out_pdata[0];
     }
     
@@ -277,7 +278,7 @@ public class MXNet {
         int[] out_dev_type = new int[1];
         int[] out_dev_id = new int[1];
         int ret = MXNetJNI.MXNDArrayGetContext(handle.getHandle(), out_dev_type, out_dev_id);
-        HandleError(ret);
+        CheckCall(ret);
         return new int[] {out_dev_type[0], out_dev_id[0]};        
     }
     
@@ -294,7 +295,7 @@ public class MXNet {
     public static FunctionHandle[] MXListFunctions() throws MXNetError {
         long[][] out_array = new long[1][];
         int ret = MXNetJNI.MXListFunctions(out_array);
-        HandleError(ret);
+        CheckCall(ret);
         FunctionHandle[] handles = new FunctionHandle[out_array[0].length];
         for(int i=0; i<handles.length; i++) {
             handles[i] = new FunctionHandle();
@@ -312,7 +313,8 @@ public class MXNet {
     public static FunctionHandle MXGetFunction(String name) throws MXNetError {
         FunctionHandle handle = new FunctionHandle();
         int ret = MXNetJNI.MXGetFunction(name, handle.getHandleRef());
-        HandleError(ret);
+        CheckCall(ret);
+        handle.setInit();
         return handle;
     }
     
@@ -331,7 +333,7 @@ public class MXNet {
         
         int ret = MXNetJNI.MXFuncGetInfo(func.getHandle(), name, description, arg_names,
                 arg_type_infos, arg_descriptions);
-        HandleError(ret);
+        CheckCall(ret);
         MXFuncInfo funcInfo = new MXFuncInfo(name[0], description[0], arg_names[0], 
                 arg_type_infos[0], arg_descriptions[0]);
         
@@ -352,7 +354,7 @@ public class MXNet {
         
         int ret = MXNetJNI.MXFuncDescribe(func.getHandle(), num_use_vars, num_scalars, 
                 num_mutate_vars, type_mask);
-        HandleError(ret);
+        CheckCall(ret);
         MXFuncDesc funcDesc = new MXFuncDesc(num_use_vars[0], num_scalars[0],
                 num_mutate_vars[0], type_mask[0]);
         
@@ -372,7 +374,7 @@ public class MXNet {
             float[] scalar_args, NDArrayHandle[] mutate_vars) throws MXNetError {
         int ret = MXNetJNI.MXFuncInvoke(func.getHandle(), MXNetHandles.transferHandleArray(use_vars), 
                 scalar_args, MXNetHandles.transferHandleArray(mutate_vars));
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /*--------------------------------------------
@@ -388,7 +390,7 @@ public class MXNet {
     public static AtomicSymbolCreator[] MXSymbolListAtomicSymbolCreators() throws MXNetError {
         long[][] out_array = new long[1][];
         int ret = MXNetJNI.MXSymbolListAtomicSymbolCreators(out_array);
-        HandleError(ret);
+        CheckCall(ret);
         AtomicSymbolCreator[] creators = new AtomicSymbolCreator[out_array[0].length];
         for(int i=0; i<creators.length; i++) {
             creators[i] = new AtomicSymbolCreator();
@@ -415,7 +417,7 @@ public class MXNet {
         
         int ret = MXNetJNI.MXSymbolGetAtomicSymbolInfo(creator.getHandle(), name, description, arg_names,
                 arg_type_infos, arg_descriptions, key_var_num_args);
-        HandleError(ret);
+        CheckCall(ret);
         
         MXAtomicSymbolInfo symbolInfo = new MXAtomicSymbolInfo(name[0], description[0], 
                 arg_names[0], arg_type_infos[0], arg_descriptions[0], key_var_num_args[0]);
@@ -434,8 +436,8 @@ public class MXNet {
             String[] keys, String[] vals) throws MXNetError {
         SymbolHandle handle = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolCreateAtomicSymbol(creator.getHandle(), keys, vals, handle.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        handle.setInit();
         return handle;
     }
     
@@ -448,8 +450,8 @@ public class MXNet {
     public static SymbolHandle MXSymbolCreateVariable(String name) throws MXNetError {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolCreateVariable(name, out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -463,8 +465,8 @@ public class MXNet {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolCreateGroup(MXNetHandles.transferHandleArray(symbols), 
                 out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -477,8 +479,8 @@ public class MXNet {
     public static SymbolHandle MXSymbolCreateFromFile(String fname) throws MXNetError {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolCreateFromFile(fname, out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -491,8 +493,8 @@ public class MXNet {
     public static SymbolHandle MXSymbolCreateFromJSON(String json) throws MXNetError {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolCreateFromJSON(json, out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -504,7 +506,7 @@ public class MXNet {
      */
     public static void MXSymbolSaveToFile(SymbolHandle symbol, String fname) throws MXNetError {
         int ret = MXNetJNI.MXSymbolSaveToFile(symbol.getHandle(), fname);
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -516,7 +518,7 @@ public class MXNet {
     public static String MXSymbolSaveToJSON(SymbolHandle symbol) throws MXNetError {
         String[] out = new String[1];
         int ret = MXNetJNI.MXSymbolSaveToJSON(symbol.getHandle(), out);
-        HandleError(ret);
+        CheckCall(ret);
         
         return out[0];
     }
@@ -530,8 +532,8 @@ public class MXNet {
     public static SymbolHandle MXSymbolCopy(SymbolHandle symbol) throws MXNetError {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolCopy(symbol.getHandle(), out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -544,7 +546,7 @@ public class MXNet {
     public static String MXSymbolPrint(SymbolHandle symbol) throws MXNetError {
         String[] out_str = new String[1];
         int ret = MXNetJNI.MXSymbolPrint(symbol.getHandle(), out_str);
-        HandleError(ret);
+        CheckCall(ret);
         
         return out_str[0];
     }
@@ -558,7 +560,7 @@ public class MXNet {
     public static String[] MXSymbolListArguments(SymbolHandle symbol) throws MXNetError {
         String[][] out_str_array = new String[1][];
         int ret = MXNetJNI.MXSymbolListArguments(symbol.getHandle(), out_str_array);
-        HandleError(ret);
+        CheckCall(ret);
         
         return out_str_array[0];
     }
@@ -572,7 +574,7 @@ public class MXNet {
     public static String[] MXSymbolListOutputs(SymbolHandle symbol) throws MXNetError {
         String[][] out_str_array = new String[1][];
         int ret = MXNetJNI.MXSymbolListOutputs(symbol.getHandle(), out_str_array);
-        HandleError(ret);
+        CheckCall(ret);
         
         return out_str_array[0];
     }
@@ -586,8 +588,8 @@ public class MXNet {
     public static SymbolHandle MXSymbolGetInternals(SymbolHandle symbol) throws MXNetError {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolGetInternals(symbol.getHandle(), out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -602,8 +604,8 @@ public class MXNet {
             int index) throws MXNetError {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolGetOutput(symbol.getHandle(), index, out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -616,7 +618,7 @@ public class MXNet {
     public static String[] MXSymbolListAuxiliaryStates(SymbolHandle symbol) throws MXNetError {
         String[][] out_str_array = new String[1][];
         int ret = MXNetJNI.MXSymbolListAuxiliaryStates(symbol.getHandle(), out_str_array);
-        HandleError(ret);
+        CheckCall(ret);
         
         return out_str_array[0];
     }
@@ -633,7 +635,7 @@ public class MXNet {
      */
     public static void MXSymbolCompose(SymbolHandle sym, String name, String[] keys, SymbolHandle[] args) throws MXNetError {
         int ret = MXNetJNI.MXSymbolCompose(sym.getHandle(), name, keys, MXNetHandles.transferHandleArray(args));
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -646,8 +648,8 @@ public class MXNet {
     public static SymbolHandle MXSymbolGrad(SymbolHandle sym, String[] wrt) throws MXNetError {
         SymbolHandle out = new SymbolHandle();
         int ret = MXNetJNI.MXSymbolGrad(sym.getHandle(), wrt, out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -668,7 +670,7 @@ public class MXNet {
     public static String MXExecutorPrint(ExecutorHandle ex_handle) throws MXNetError {
         String[] out_str = new String[1];
         int ret = MXNetJNI.MXExecutorPrint(ex_handle.getHandle(), out_str);
-        HandleError(ret);
+        CheckCall(ret);
         
         return out_str[0];
     }
@@ -681,7 +683,7 @@ public class MXNet {
      */
     public static void MXExecutorForward(ExecutorHandle handle, int is_train) throws MXNetError {
         int ret = MXNetJNI.MXExecutorForward(handle.getHandle(), is_train);
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -692,7 +694,7 @@ public class MXNet {
      */
     public static void MXExecutorBackward(ExecutorHandle handle, NDArrayHandle[] head_grads) throws MXNetError {
         int ret = MXNetJNI.MXExecutorBackward(handle.getHandle(), MXNetHandles.transferHandleArray(head_grads));
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -704,7 +706,7 @@ public class MXNet {
     public static NDArrayHandle[] MXExecutorOutputs(ExecutorHandle handle) throws MXNetError {
         long[][] out = new long[1][];
         int ret = MXNetJNI.MXExecutorOutputs(handle.getHandle(), out);
-        HandleError(ret);
+        CheckCall(ret);
         
         NDArrayHandle[] handles = new NDArrayHandle[out[0].length];
         for(int i=0; i<handles.length; i++){
@@ -737,8 +739,8 @@ public class MXNet {
                 dev_id, MXNetHandles.transferHandleArray(in_args), 
                 MXNetHandles.transferHandleArray(arg_grad_store), grad_req_type, 
                 MXNetHandles.transferHandleArray(aux_states), ex_handle.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        ex_handle.setInit();
         return ex_handle;
     }
     
@@ -754,7 +756,7 @@ public class MXNet {
     public static DataIterCreator[] MXListDataIters() throws MXNetError {
         long[][] out_array = new long[1][];
         int ret = MXNetJNI.MXListDataIters(out_array);
-        HandleError(ret);
+        CheckCall(ret);
         
         DataIterCreator[] creators = new DataIterCreator[out_array[0].length];
         for(int i=0; i<creators.length; i++) {
@@ -777,8 +779,8 @@ public class MXNet {
         DataIterHandle out = new DataIterHandle();
         int ret = MXNetJNI.MXDataIterCreateIter(handle.getHandle(), 
                 keys, vals, out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -800,7 +802,7 @@ public class MXNet {
                 creator.getHandle(), name, description, 
                 arg_names, arg_type_infos, arg_descriptions);
         
-        HandleError(ret);
+        CheckCall(ret);
         return new MXDataIterInfo(name[0], description[0], 
                 arg_names[0], arg_type_infos[0], arg_descriptions[0]);
     }
@@ -815,7 +817,7 @@ public class MXNet {
             throws MXNetError {
         int[] out = new int[1];
         int ret = MXNetJNI.MXDataIterNext(handle.getHandle(), out);
-        HandleError(ret);
+        CheckCall(ret);
         
         return out[0];
     }
@@ -828,7 +830,7 @@ public class MXNet {
     public static void MXDataIterBeforeFirst(DataIterHandle handle)
             throws MXNetError {
         int ret = MXNetJNI.MXDataIterBeforeFirst(handle.getHandle());
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -841,8 +843,8 @@ public class MXNet {
             throws MXNetError {
         NDArrayHandle out = new NDArrayHandle();
         int ret = MXNetJNI.MXDataIterGetData(handle.getHandle(), out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -855,7 +857,7 @@ public class MXNet {
     public static int MXDataIterGetPadNum(DataIterHandle handle) throws MXNetError {
         int[] pad = new int[1];
         int ret = MXNetJNI.MXDataIterGetPadNum(handle.getHandle(), pad);
-        HandleError(ret);
+        CheckCall(ret);
         
         return pad[0];
     }
@@ -870,8 +872,8 @@ public class MXNet {
             throws MXNetError {
         NDArrayHandle out = new NDArrayHandle();
         int ret = MXNetJNI.MXDataIterGetLabel(handle.getHandle(), out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -888,8 +890,8 @@ public class MXNet {
     public static KVStoreHandle MXKVStoreCreate(String type) throws MXNetError {
         KVStoreHandle out = new KVStoreHandle();
         int ret = MXNetJNI.MXKVStoreCreate(type, out.getHandleRef());
-        HandleError(ret);
-        
+        CheckCall(ret);
+        out.setInit();
         return out;
     }
     
@@ -904,7 +906,7 @@ public class MXNet {
             int[] keys, NDArrayHandle[] vals) throws MXNetError {
         int ret = MXNetJNI.MXKVStoreInit(handle.getHandle(), keys, 
                 MXNetHandles.transferHandleArray(vals));
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -919,7 +921,7 @@ public class MXNet {
             int[] keys, NDArrayHandle[] vals, int priority) throws MXNetError {
         int ret = MXNetJNI.MXKVStorePush(handle.getHandle(), keys, 
                 MXNetHandles.transferHandleArray(vals), priority);
-        HandleError(ret);
+        CheckCall(ret);
     }
     
     /**
@@ -934,6 +936,6 @@ public class MXNet {
             int[] keys, NDArrayHandle[] vals, int priority) throws MXNetError {
         int ret = MXNetJNI.MXKVStorePull(handle.getHandle(), keys, 
                 MXNetHandles.transferHandleArray(vals), priority);
-        HandleError(ret);
+        CheckCall(ret);
     }
 }
