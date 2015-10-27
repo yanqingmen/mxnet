@@ -69,6 +69,11 @@ public class Context {
     int devId;   
     Context oldContext = null;
     
+    public Context(int devType, int devId) {
+        this.devTypeId = devType;
+        this.devId = devId;
+    }
+    
     public Context(String devType, int devId){
         this.devTypeId = str2DevTypeId.get(devType);
         this.devId = devId;
