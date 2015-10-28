@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.dmlc.mxnet.util.FunctionUtil;
 import org.dmlc.mxnet.wrapper.MXNet;
 import org.dmlc.mxnet.wrapper.MXNetHandles.*;
 import org.dmlc.mxnet.wrapper.util.MXFuncDesc;
@@ -40,7 +39,7 @@ public class Function{
     
     static {
         try {
-            funcMap = FunctionUtil.createFuncs();
+            funcMap = createFuncs();
         } catch (MXNetError ex) {
             logger.error(ex);
             System.exit(0);
@@ -226,5 +225,21 @@ public class Function{
         params.put("a_min", min);
         params.put("a_max", max);
         funcMap.get("clip").invoke(params);
+    }
+    
+    /**
+     * create a <name, func> map to store all mxnet functions
+     * @return
+     * @throws MXNetError 
+     */
+    private static Map<String, Function> createFuncs() throws MXNetError {
+        FunctionHandle[] funcs = MXNet.MXListFunctions();
+        Map<String, Function> localFuncMap = new HashMap<>();
+        for(FunctionHandle handle : funcs) {
+            Function func = new Function(handle);
+            String name = func.getInfo().name;
+            localFuncMap.put(name, func);
+        }        
+        return localFuncMap;
     }
 }
