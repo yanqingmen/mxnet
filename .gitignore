@@ -68,3 +68,4 @@ java/mxnet4j/tmp
 java/mxnet4j-demo/target
 java/mxnet4j-demo/tmp/
 nb-configuration*
+nbproject

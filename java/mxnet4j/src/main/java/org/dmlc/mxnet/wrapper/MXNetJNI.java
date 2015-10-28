@@ -28,7 +28,7 @@ public class MXNetJNI {
     public final static native int MXNotifyShutdown();
     //ndarry
     public final static native int MXNDArrayCreateNone(long[] out);
-    public final static native int MXNDArrayCreate(int[] shape, long ndim, int dev_type, int dev_id, int delay_alloc, long[] out);
+    public final static native int MXNDArrayCreate(int[] shape, int dev_type, int dev_id, int delay_alloc, long[] out);
     public final static native int MXNDArrayLoadFromRawBytes(byte[] buf, long[] out);
     public final static native int MXNDArraySaveRawBytes(long handle, String[] out_buf);
     public final static native int MXNDArraySyncCopyFromCPU(long handle, float[] data);

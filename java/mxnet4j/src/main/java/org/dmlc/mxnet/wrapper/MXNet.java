@@ -92,7 +92,7 @@ public class MXNet {
      */
     public static NDArrayHandle MXNDArrayCreate(int[] shape, int dev_type, int dev_id, int delay_alloc) throws MXNetError {
         NDArrayHandle handle = new NDArrayHandle();
-        int ret = MXNetJNI.MXNDArrayCreate(shape, dev_id, dev_type, dev_id, delay_alloc, handle.getHandleRef());
+        int ret = MXNetJNI.MXNDArrayCreate(shape, dev_type, dev_id, delay_alloc, handle.getHandleRef());
         CheckCall(ret);        
         handle.setInit();
         return handle;
