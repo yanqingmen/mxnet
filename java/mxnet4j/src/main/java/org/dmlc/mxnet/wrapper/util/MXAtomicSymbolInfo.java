@@ -28,6 +28,7 @@ public class MXAtomicSymbolInfo {
      * @param argTypeInfos Type informations about the arguments.
      * @param argDescriptions Description information about the arguments.
      * @param keyVarNumArgs The keyword argument for specifying variable number of arguments.
+     * 
      * When this parameter has non-zero length, the function allows variable number
      * of positional arguments, and will need the caller to pass it in in
      * MXSymbolCreateAtomicSymbol,

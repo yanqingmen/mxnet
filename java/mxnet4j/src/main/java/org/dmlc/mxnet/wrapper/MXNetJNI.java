@@ -16,7 +16,7 @@
 package org.dmlc.mxnet.wrapper;
 
 /**
- * MXNet jni wrapper funcs for  src/c_api.cc
+ * MXNet jni wrapper funcs for  include/mxnet/c_api.h
  * hints: use a long[] (length=1) as container of handle to get the output handle
  *            use a int[](length=1) as container to get the output size
  *            use a String[](length=1) as container to get the output String
@@ -30,12 +30,12 @@ public class MXNetJNI {
     public final static native int MXNDArrayCreateNone(long[] out);
     public final static native int MXNDArrayCreate(int[] shape, int dev_type, int dev_id, int delay_alloc, long[] out);
     public final static native int MXNDArrayLoadFromRawBytes(byte[] buf, long[] out);
-    public final static native int MXNDArraySaveRawBytes(long handle, String[] out_buf);
+    public final static native int MXNDArraySaveRawBytes(long handle, byte[][] out_buf);
     public final static native int MXNDArraySyncCopyFromCPU(long handle, float[] data);
     public final static native int MXNDArraySyncCopyToCPU(long handle, float[] data, int size);
     public final static native int MXNDArrayWaitToRead(long handle);
     public final static native int MXNDArrayWaitToWrite(long handle);
-    public final static native int MXNDarrayWaitAll();
+    public final static native int MXNDArrayWaitAll();
     public final static native int MXNDArraySave(String fname, long[] args, String[] keys);
     public final static native int MXNDArrayLoad(String fname, long[][] out_arr, String[][] out_names);
     public final static native int MXNDArrayFree(long handle);

@@ -281,7 +281,7 @@ public class NDArray {
      * @return
      * @throws MXNetError 
      */
-    public String saveRawBytes() throws MXNetError {
+    public byte[] saveRawBytes() throws MXNetError {
         return MXNet.MXNDArraySaveRawBytes(handle);
     }
     

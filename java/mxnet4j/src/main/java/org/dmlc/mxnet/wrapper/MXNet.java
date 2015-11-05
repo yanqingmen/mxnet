@@ -118,8 +118,8 @@ public class MXNet {
      * @return String for bytes array
      * @throws MXNetError 
      */
-    public static String MXNDArraySaveRawBytes(NDArrayHandle handle) throws MXNetError {
-        String[] out_buf = new String[1];
+    public static byte[] MXNDArraySaveRawBytes(NDArrayHandle handle) throws MXNetError {
+        byte[][] out_buf = new byte[1][];
         int ret = MXNetJNI.MXNDArraySaveRawBytes(handle.getHandle(), out_buf);
         CheckCall(ret);
         return out_buf[0];
@@ -222,7 +222,7 @@ public class MXNet {
      * @throws MXNetError 
      */
     public static void MXNDArrayWaitAll() throws MXNetError {
-        int ret = MXNetJNI.MXNDarrayWaitAll();
+        int ret = MXNetJNI.MXNDArrayWaitAll();
         CheckCall(ret);
     }
     

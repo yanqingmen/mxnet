@@ -58,7 +58,7 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXNDArrayLoadFromRaw
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
  * Method:    MXNDArraySaveRawBytes
- * Signature: (J[Ljava/lang/String;)I
+ * Signature: (J[[B)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXNDArraySaveRawBytes
   (JNIEnv *, jclass, jlong, jobjectArray);
