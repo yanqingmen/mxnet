@@ -51,7 +51,6 @@ public class MXNetJNI {
     public final static native int MXFuncInvoke(long fun, long[] use_vars, float[] scalar_args, long[] mutate_vars);
     //symbolic config generation
     public final static native int MXSymbolListAtomicSymbolCreators(long[][] out_array);
-    public final static native int MXSymbolGetAtomicSymbolName(long creator, String[] out);
     public final static native int MXSymbolGetAtomicSymbolInfo(long creator, String[] name, String[] description, String[][] arg_names, String[][] arg_type_infos, String[][] arg_descriptions, String[] key_var_num_args);
     public final static native int MXSymbolCreateAtomicSymbol(long creator, String[] keys, String[] vals, long[] out);
     public final static native int MXSymbolCreateVariable(String name, long[] out);

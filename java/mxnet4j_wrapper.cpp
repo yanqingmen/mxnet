@@ -356,13 +356,15 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXNDArrayGetData
     mx_uint shape_dim[1];
     mx_uint* shape_data[1];
     mx_float * out_data[1];
+    jint flag;
+    handle = *(void **)&jhandle;
     
-    jint flag0 = MXNDArrayGetShape(handle, shape_dim, (const mx_uint **) shape_data);
-    if(flag0 != 0) {
-        return flag0;
+    flag = MXNDArrayGetShape(handle, shape_dim, (const mx_uint **) shape_data);
+    if(flag != 0) {
+        return flag;
     }
     
-    jint flag1 = MXNDArrayGetData(handle, out_data);
+    flag = MXNDArrayGetData(handle, out_data);
     
     jsize len = 1;
     for(int i=0; i<shape_dim[0]; i++) {
@@ -372,7 +374,7 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXNDArrayGetData
     jenv->SetFloatArrayRegion(jdata, 0, len, out_data[0]);
     jenv->SetObjectArrayElement(jout, 0, jdata);
     
-    return flag1;
+    return flag;
 }
 
 /*
@@ -381,7 +383,18 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXNDArrayGetData
  * Signature: (J[I[I)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXNDArrayGetContext
-  (JNIEnv *, jclass, jlong, jintArray, jintArray);
+  (JNIEnv *jenv, jclass jcls, jlong jhandle, jintArray jout_dev_type, jintArray jout_dev_id) {
+    void* handle;
+    int out_dev_type[1];
+    int out_dev_id[1];
+    
+    handle = *(void **)&jhandle;
+    jint flag = MXNDArrayGetContext(handle, out_dev_type, out_dev_id);
+    jenv->SetIntArrayRegion(jout_dev_type, 0, 1,(const jint*) out_dev_type);
+    jenv->SetIntArrayRegion(jout_dev_id, 0, 1,(const jint*) out_dev_id);
+    
+    return flag;
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
@@ -389,7 +402,27 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXNDArrayGetContext
  * Signature: ([[J)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXListFunctions
-  (JNIEnv *, jclass, jobjectArray);
+  (JNIEnv *jenv, jclass jcls, jobjectArray jout_array) {
+    mx_uint out_size[1];
+    void** out_array[1];
+    jlongArray jhandles;
+    
+    jint flag = MXListFunctions(out_size, out_array);
+    
+    //put out handles to jhandles
+    jhandles = jenv->NewLongArray((jsize) out_size[0]);
+    jlong* jhandle_array = jenv->GetLongArrayElements(jhandles, 0);
+    for(int i=0; i<out_size[0]; i++) {
+        *(void **)&jhandle_array[i] = out_array[0][i];
+    }
+    jenv->SetLongArrayRegion(jhandles, 0, out_size[0], jhandle_array);
+    //put jhandles to jout_array
+    jenv->SetObjectArrayElement(jout_array, 0, jhandles);
+    //release
+    jenv->ReleaseLongArrayElements(jhandles, jhandle_array, 0);
+    
+    return flag;
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
@@ -397,7 +430,21 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXListFunctions
  * Signature: (Ljava/lang/String;[J)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXGetFunction
-  (JNIEnv *, jclass, jstring, jlongArray);
+  (JNIEnv *jenv, jclass jcls, jstring jname, jlongArray jout) {
+    void* result[1];
+    unsigned long out[1];
+    char* name = (char *) jenv->GetStringUTFChars(jname, 0);
+    
+    jint flag = MXGetFunction((const char*) name, result);
+    //put handle to jout
+    *(void **)&out[0] = result[0];
+    jenv->SetLongArrayRegion(jout, 0, 1, (const jlong*) out);
+    
+    //release name
+    jenv->ReleaseStringUTFChars(jname, (const char*) name);
+    
+    return flag;
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
@@ -405,7 +452,10 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXGetFunction
  * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncGetInfo
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
+  (JNIEnv *jenv, jclass jcls, jlong jfun, jobjectArray jname, jobjectArray jdescription,
+        jobjectArray jarg_names, jobjectArray jarg_type_infos, jobjectArray jarg_descriptions) {
+    //todo
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
@@ -413,7 +463,9 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncGetInfo
  * Signature: (J[I[I[I[I)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncDescribe
-  (JNIEnv *, jclass, jlong, jintArray, jintArray, jintArray, jintArray);
+  (JNIEnv *, jclass, jlong, jintArray, jintArray, jintArray, jintArray) {
+    //todo
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
@@ -421,7 +473,9 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncDescribe
  * Signature: (J[J[F[J)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncInvoke
-  (JNIEnv *, jclass, jlong, jlongArray, jfloatArray, jlongArray);
+  (JNIEnv *, jclass, jlong, jlongArray, jfloatArray, jlongArray) {
+    //todo
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
@@ -429,15 +483,26 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncInvoke
  * Signature: ([[J)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListAtomicSymbolCreators
-  (JNIEnv *, jclass, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolGetAtomicSymbolName
- * Signature: (J[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetAtomicSymbolName
-  (JNIEnv *, jclass, jlong, jobjectArray);
+  (JNIEnv *jenv, jclass jcls, jobjectArray jout_array) {
+    jlongArray jhandles;
+    void** out_array[1];
+    mx_uint out_size[1];
+    
+    jint flag = MXSymbolListAtomicSymbolCreators(out_size, out_array);
+    //put pointers to jhandles
+    jhandles = jenv->NewLongArray((jsize) out_size[0]);
+    jlong* jhandle_array = jenv->GetLongArrayElements(jhandles, 0);
+    for(int i=0; i<out_size[0]; i++) {
+        *(void **)&jhandle_array[i] = out_array[0][i];
+    }
+    jenv->SetLongArrayRegion(jhandles, 0, out_size[0], jhandle_array);
+    jenv->SetObjectArrayElement(jout_array, 0, jhandles);
+    
+    //release
+    jenv->ReleaseLongArrayElements(jhandles, jhandle_array, 0);
+    
+    return flag;
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
@@ -445,7 +510,9 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetAtomicSym
  * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetAtomicSymbolInfo
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray) {
+    //todo
+}
 
 /*
  * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
