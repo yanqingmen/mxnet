@@ -16,7 +16,12 @@ limitations under the License.
 
 package org.dmlc.mxnet.wrapper;
 
+import java.io.IOException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dmlc.mxnet.NDArray;
 import org.dmlc.mxnet.wrapper.MXNetHandles.*;
+import org.dmlc.mxnet.wrapper.util.Initializer;
 import org.dmlc.mxnet.wrapper.util.MXAtomicSymbolInfo;
 import org.dmlc.mxnet.wrapper.util.MXDataIterInfo;
 import org.dmlc.mxnet.wrapper.util.MXFuncDesc;
@@ -29,6 +34,19 @@ import org.dmlc.mxnet.wrapper.util.MXNetError;
 
 
 public class MXNet {
+    private static final Log logger = LogFactory.getLog(NDArray.class);
+    
+    //load native library
+    static {
+        try {
+            Initializer.InitMXNet();
+        } catch (IOException ex) {
+            logger.error("load native library failed.");
+            logger.error(ex);
+        }
+    }
+    
+    
     /**
      * check result of native func
      * @param ret

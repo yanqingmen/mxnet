@@ -75,6 +75,11 @@ ifneq ($(USE_CUDA_PATH), NONE)
 	NVCC=$(USE_CUDA_PATH)/bin/nvcc
 endif
 
+# java include path
+export JAVAINCFLAGS = -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I./java
+
+java: java/libmxnet4j.so
+
 .PHONY: clean all test lint doc clean_all
 
 all: lib/libmxnet.a lib/libmxnet.so $(BIN)
@@ -110,6 +115,9 @@ $(DMLC_CORE)/libdmlc.a:
 	+ cd $(DMLC_CORE); make libdmlc.a config=$(ROOTDIR)/$(config); cd $(ROOTDIR)
 
 bin/im2rec: tools/im2rec.cc $(DMLC_CORE)/libdmlc.a
+
+java/libmxnet4j.so: lib/libmxnet.a java/*.h java/*.cpp
+	$(CXX) $(CFLAGS) -shared -o $@ -Wl,--whole-archive $(filter %.cpp %.o %.c %.a %.cc, $^) -Wl,-no-whole-archive $(LDFLAGS) $(JAVAINCFLAGS)
 
 $(BIN) :
 	$(CXX) $(CFLAGS)  -o $@ $(filter %.cpp %.o %.c %.a %.cc, $^) $(LDFLAGS)

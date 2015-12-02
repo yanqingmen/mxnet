@@ -180,352 +180,352 @@ JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXGetFunction
  * Method:    MXFuncGetInfo
  * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncGetInfo
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXFuncDescribe
- * Signature: (J[I[I[I[I)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncDescribe
-  (JNIEnv *, jclass, jlong, jintArray, jintArray, jintArray, jintArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXFuncInvoke
- * Signature: (J[J[F[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncInvoke
-  (JNIEnv *, jclass, jlong, jlongArray, jfloatArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolListAtomicSymbolCreators
- * Signature: ([[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListAtomicSymbolCreators
-  (JNIEnv *, jclass, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolGetAtomicSymbolName
- * Signature: (J[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetAtomicSymbolName
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolGetAtomicSymbolInfo
- * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetAtomicSymbolInfo
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolCreateAtomicSymbol
- * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateAtomicSymbol
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolCreateVariable
- * Signature: (Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateVariable
-  (JNIEnv *, jclass, jstring, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolCreateGroup
- * Signature: ([J[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateGroup
-  (JNIEnv *, jclass, jlongArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolGetOutput
- * Signature: (JI[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetOutput
-  (JNIEnv *, jclass, jlong, jint, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolGetInternals
- * Signature: (J[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetInternals
-  (JNIEnv *, jclass, jlong, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolCreateFromFile
- * Signature: (Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateFromFile
-  (JNIEnv *, jclass, jstring, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolCreateFromJSON
- * Signature: (Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateFromJSON
-  (JNIEnv *, jclass, jstring, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolSaveToFile
- * Signature: (JLjava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolSaveToFile
-  (JNIEnv *, jclass, jlong, jstring);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolSaveToJSON
- * Signature: (J[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolSaveToJSON
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolFree
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolFree
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolCopy
- * Signature: (J[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCopy
-  (JNIEnv *, jclass, jlong, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolPrint
- * Signature: (J[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolPrint
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolListArguments
- * Signature: (J[[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListArguments
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolListOutputs
- * Signature: (J[[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListOutputs
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolListAuxiliaryStates
- * Signature: (J[[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListAuxiliaryStates
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolCompose
- * Signature: (JLjava/lang/String;[Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCompose
-  (JNIEnv *, jclass, jlong, jstring, jobjectArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolGrad
- * Signature: (J[Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGrad
-  (JNIEnv *, jclass, jlong, jobjectArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXSymbolInferShape
- * Signature: (J[Ljava/lang/String;[I[I[[I[[J[I[[I[[[I[I[[I[[[I[I)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolInferShape
-  (JNIEnv *, jclass, jlong, jobjectArray, jintArray, jintArray, jobjectArray, jobjectArray, jintArray, jobjectArray, jobjectArray, jintArray, jobjectArray, jobjectArray, jintArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXExecutorPrint
- * Signature: (J[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorPrint
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXExecutorForward
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorForward
-  (JNIEnv *, jclass, jlong, jint);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXExecutorBackward
- * Signature: (J[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorBackward
-  (JNIEnv *, jclass, jlong, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXExecutorOutputs
- * Signature: (J[[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorOutputs
-  (JNIEnv *, jclass, jlong, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXExecutorBind
- * Signature: (JII[J[J[I[J[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorBind
-  (JNIEnv *, jclass, jlong, jint, jint, jlongArray, jlongArray, jintArray, jlongArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXListDataIters
- * Signature: ([[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXListDataIters
-  (JNIEnv *, jclass, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterGetIterInfo
- * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetIterInfo
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterCreateIter
- * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterCreateIter
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterFree
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterFree
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterBeforeFirst
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterBeforeFirst
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterNext
- * Signature: (J[I)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterNext
-  (JNIEnv *, jclass, jlong, jintArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterGetLabel
- * Signature: (J[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetLabel
-  (JNIEnv *, jclass, jlong, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterGetData
- * Signature: (J[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetData
-  (JNIEnv *, jclass, jlong, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXDataIterGetPadNum
- * Signature: (J[I)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetPadNum
-  (JNIEnv *, jclass, jlong, jintArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXKVStoreCreate
- * Signature: (Ljava/lang/String;[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreCreate
-  (JNIEnv *, jclass, jstring, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXKVStoreFree
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreFree
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXKVStoreInit
- * Signature: (J[I[J)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreInit
-  (JNIEnv *, jclass, jlong, jintArray, jlongArray);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXKVStorePush
- * Signature: (J[I[JI)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStorePush
-  (JNIEnv *, jclass, jlong, jintArray, jlongArray, jint);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXKVStorePull
- * Signature: (J[I[JI)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStorePull
-  (JNIEnv *, jclass, jlong, jintArray, jlongArray, jint);
-
-/*
- * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
- * Method:    MXKVStoreSetUpdater
- * Signature: (JJ)I
- */
-JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreSetUpdater
-  (JNIEnv *, jclass, jlong, jlong);
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncGetInfo
+//  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXFuncDescribe
+// * Signature: (J[I[I[I[I)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncDescribe
+//  (JNIEnv *, jclass, jlong, jintArray, jintArray, jintArray, jintArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXFuncInvoke
+// * Signature: (J[J[F[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXFuncInvoke
+//  (JNIEnv *, jclass, jlong, jlongArray, jfloatArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolListAtomicSymbolCreators
+// * Signature: ([[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListAtomicSymbolCreators
+//  (JNIEnv *, jclass, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolGetAtomicSymbolName
+// * Signature: (J[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetAtomicSymbolName
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolGetAtomicSymbolInfo
+// * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetAtomicSymbolInfo
+//  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolCreateAtomicSymbol
+// * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateAtomicSymbol
+//  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolCreateVariable
+// * Signature: (Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateVariable
+//  (JNIEnv *, jclass, jstring, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolCreateGroup
+// * Signature: ([J[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateGroup
+//  (JNIEnv *, jclass, jlongArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolGetOutput
+// * Signature: (JI[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetOutput
+//  (JNIEnv *, jclass, jlong, jint, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolGetInternals
+// * Signature: (J[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGetInternals
+//  (JNIEnv *, jclass, jlong, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolCreateFromFile
+// * Signature: (Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateFromFile
+//  (JNIEnv *, jclass, jstring, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolCreateFromJSON
+// * Signature: (Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCreateFromJSON
+//  (JNIEnv *, jclass, jstring, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolSaveToFile
+// * Signature: (JLjava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolSaveToFile
+//  (JNIEnv *, jclass, jlong, jstring);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolSaveToJSON
+// * Signature: (J[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolSaveToJSON
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolFree
+// * Signature: (J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolFree
+//  (JNIEnv *, jclass, jlong);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolCopy
+// * Signature: (J[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCopy
+//  (JNIEnv *, jclass, jlong, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolPrint
+// * Signature: (J[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolPrint
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolListArguments
+// * Signature: (J[[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListArguments
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolListOutputs
+// * Signature: (J[[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListOutputs
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolListAuxiliaryStates
+// * Signature: (J[[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolListAuxiliaryStates
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolCompose
+// * Signature: (JLjava/lang/String;[Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolCompose
+//  (JNIEnv *, jclass, jlong, jstring, jobjectArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolGrad
+// * Signature: (J[Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolGrad
+//  (JNIEnv *, jclass, jlong, jobjectArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXSymbolInferShape
+// * Signature: (J[Ljava/lang/String;[I[I[[I[[J[I[[I[[[I[I[[I[[[I[I)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXSymbolInferShape
+//  (JNIEnv *, jclass, jlong, jobjectArray, jintArray, jintArray, jobjectArray, jobjectArray, jintArray, jobjectArray, jobjectArray, jintArray, jobjectArray, jobjectArray, jintArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXExecutorPrint
+// * Signature: (J[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorPrint
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXExecutorForward
+// * Signature: (JI)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorForward
+//  (JNIEnv *, jclass, jlong, jint);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXExecutorBackward
+// * Signature: (J[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorBackward
+//  (JNIEnv *, jclass, jlong, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXExecutorOutputs
+// * Signature: (J[[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorOutputs
+//  (JNIEnv *, jclass, jlong, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXExecutorBind
+// * Signature: (JII[J[J[I[J[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXExecutorBind
+//  (JNIEnv *, jclass, jlong, jint, jint, jlongArray, jlongArray, jintArray, jlongArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXListDataIters
+// * Signature: ([[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXListDataIters
+//  (JNIEnv *, jclass, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterGetIterInfo
+// * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;[[Ljava/lang/String;)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetIterInfo
+//  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jobjectArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterCreateIter
+// * Signature: (J[Ljava/lang/String;[Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterCreateIter
+//  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterFree
+// * Signature: (J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterFree
+//  (JNIEnv *, jclass, jlong);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterBeforeFirst
+// * Signature: (J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterBeforeFirst
+//  (JNIEnv *, jclass, jlong);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterNext
+// * Signature: (J[I)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterNext
+//  (JNIEnv *, jclass, jlong, jintArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterGetLabel
+// * Signature: (J[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetLabel
+//  (JNIEnv *, jclass, jlong, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterGetData
+// * Signature: (J[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetData
+//  (JNIEnv *, jclass, jlong, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXDataIterGetPadNum
+// * Signature: (J[I)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXDataIterGetPadNum
+//  (JNIEnv *, jclass, jlong, jintArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXKVStoreCreate
+// * Signature: (Ljava/lang/String;[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreCreate
+//  (JNIEnv *, jclass, jstring, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXKVStoreFree
+// * Signature: (J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreFree
+//  (JNIEnv *, jclass, jlong);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXKVStoreInit
+// * Signature: (J[I[J)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreInit
+//  (JNIEnv *, jclass, jlong, jintArray, jlongArray);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXKVStorePush
+// * Signature: (J[I[JI)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStorePush
+//  (JNIEnv *, jclass, jlong, jintArray, jlongArray, jint);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXKVStorePull
+// * Signature: (J[I[JI)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStorePull
+//  (JNIEnv *, jclass, jlong, jintArray, jlongArray, jint);
+//
+///*
+// * Class:     org_dmlc_mxnet_wrapper_MXNetJNI
+// * Method:    MXKVStoreSetUpdater
+// * Signature: (JJ)I
+// */
+//JNIEXPORT jint JNICALL Java_org_dmlc_mxnet_wrapper_MXNetJNI_MXKVStoreSetUpdater
+//  (JNIEnv *, jclass, jlong, jlong);
 
 #ifdef __cplusplus
 }
