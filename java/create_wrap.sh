@@ -8,7 +8,7 @@ if [ ! -d "$libPath" ]; then
   mkdir -p "$libPath"
 fi
 
-rm -f mxnet4j/src/main/resources/lib/libxgboostjavawrapper.so
+rm -f mxnet4j/src/main/resources/lib/libmxnet4j.so
 mv libmxnet4j.so mxnet4j/src/main/resources/lib/
 
 echo "complete"
