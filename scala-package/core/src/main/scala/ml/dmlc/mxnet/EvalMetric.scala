@@ -59,7 +59,6 @@ class Accuracy extends EvalMetric("accuracy") {
         }
       }
       this.numInst += predLabel.shape(0)
-      predLabel.dispose()
     }
   }
 }

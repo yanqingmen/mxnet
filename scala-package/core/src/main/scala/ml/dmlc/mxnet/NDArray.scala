@@ -55,12 +55,12 @@ object NDArray {
         if (output == null) {
           require(acceptEmptyMutate, s"argument out is required to call $funcName")
           output = new NDArray(newEmptyHandle())
-          addDependency(Array(lhs, rhs), Array(output))
         }
         checkCall(_LIB.mxFuncInvoke(handle,
           Array(lhs.handle, rhs.handle),
           Array[MXFloat](),
           Array(output.handle)))
+        addDependency(Array(lhs, rhs), Array(output))
       case _ => throw new IllegalArgumentException(s"call $funcName as binary function")
     }
     output
@@ -76,12 +76,12 @@ object NDArray {
         if (output == null) {
           require(acceptEmptyMutate, s"argument out is required to call $funcName")
           output = new NDArray(newEmptyHandle())
-          addDependency(Array(src), Array(output))
         }
         checkCall(_LIB.mxFuncInvoke(handle,
           Array(src.handle),
           Array[MXFloat](),
           Array(output.handle)))
+        addDependency(Array(src), Array(output))
       case _ => throw new IllegalArgumentException(s"call $funcName as unary function")
     }
     output
@@ -91,28 +91,14 @@ object NDArray {
    * Invoke this function by passing in parameters
    *
    * @param args Positional arguments of input scalars and NDArray
-   * @param kwargs: Key-value arguments for functions. e.g.,
-   *            out: NDArray or tuple of NDArray, optional
+   * @param out NDArray or tuple of NDArray, optional
    *            Output NDArray, used to hold the output result.
    * @return The result NDArray(tuple) of result of computation.
    */
   def invokeGenericFunc(funcName: String,
-                        args: Array[Any] = null,
-                        kwargs: Map[String, Any] = null): Array[NDArray] = {
-    var mutateVars: Array[NDArray] = null
-    val realKwargs =
-      if (kwargs != null && kwargs.contains("out")) {
-        val out = kwargs("out")
-        mutateVars =
-          if (out.isInstanceOf[NDArray]) {
-            Array(kwargs("out").asInstanceOf[NDArray])
-          } else {
-            kwargs("out").asInstanceOf[Array[NDArray]]
-          }
-        kwargs - "out"
-      } else {
-        kwargs
-      }
+                        args: Array[Any],
+                        out: Array[NDArray] = null): Array[NDArray] = {
+    var mutateVars = out
     val function = functions(funcName)
     require(function != null, s"invalid function name $funcName")
     function match {
@@ -123,28 +109,17 @@ object NDArray {
                                   scalarRange: Range) =>
         require(mutateVars == null || nMutateVars == mutateVars.length,
           s"expect $nMutateVars in $funcName")
-        val useVars = useVarsRange.map(args(_).asInstanceOf[NDArray]).toArray
-        val scalarVars = scalarRange.map(args(_).asInstanceOf[MXFloat]).toArray
         if (mutateVars == null) {
           require(acceptEmptyMutate, s"argument out is required to call $funcName")
           mutateVars = Array.fill[NDArray](nMutateVars)(new NDArray(newEmptyHandle()))
-          addDependency(useVars, mutateVars)
         }
-        val (numKwargs: Int,
-              kwargKeys: Option[Array[Array[Byte]]],
-              kwargVals: Option[Array[Array[Byte]]]) =
-          if (realKwargs == null) {
-            (0, None, None)
-          } else {
-            (realKwargs.size,
-              Some(realKwargs.keys.map(_.getBytes("ASCII") ++ Array(0.toByte)).toArray),
-              Some(realKwargs.values.map(_.toString.getBytes("ASCII") ++ Array(0.toByte)).toArray))
-          }
-        checkCall(_LIB.mxFuncInvokeEx(handle,
+        val useVars = useVarsRange.map(args(_).asInstanceOf[NDArray]).toArray
+        val scalarVars = scalarRange.map(args(_).asInstanceOf[MXFloat]).toArray
+        checkCall(_LIB.mxFuncInvoke(handle,
           useVars.map(_.handle),
           scalarVars,
-          mutateVars.map(_.handle).array,
-          numKwargs, kwargKeys.orNull, kwargVals.orNull))
+          mutateVars.map(_.handle).array))
+        addDependency(useVars, mutateVars)
       case _ => throw new IllegalArgumentException(s"call $funcName as generic function")
     }
     mutateVars
@@ -489,15 +464,11 @@ object NDArray {
   }
 
   def randomUniform(low: Float, high: Float, out: NDArray): NDArray = {
-    require(out != null)
-    NDArray.invokeGenericFunc("_sample_uniform", kwargs = Map[String, Any](
-      "low" -> low, "high" -> high, "shape" -> out.shape, "out" -> out))(0)
+    NDArray.invokeGenericFunc("_random_uniform", Array(low, high), Array(out))(0)
   }
 
-  def randomGaussian(loc: Float, scale: Float, out: NDArray): NDArray = {
-    require(out != null)
-    NDArray.invokeGenericFunc("_sample_normal", kwargs = Map[String, Any](
-      "loc" -> loc, "scale" -> scale, "shape" -> out.shape, "out" -> out))(0)
+  def randomGaussian(mean: Float, stdvar: Float, out: NDArray): NDArray = {
+    NDArray.invokeGenericFunc("_random_gaussian", Array(mean, stdvar), Array(out))(0)
   }
 
   /**
@@ -608,12 +579,6 @@ object NDArray {
   private def save(fname: String, keys: Array[String], handles: Array[NDArrayHandle]): Unit = {
     checkCall(_LIB.mxNDArraySave(fname, handles, keys))
   }
-
-  def deserialize(bytes: Array[Byte]): NDArray = {
-    val handleRef = new NDArrayHandleRef
-    checkCall(_LIB.mxNDArrayLoadFromRawBytes(bytes, handleRef))
-    new NDArray(handleRef.value)
-  }
 }
 
 /**
@@ -634,12 +599,6 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
   def isDisposed: Boolean = disposed
   override protected def finalize(): Unit = {
     dispose()
-  }
-
-  def serialize(): Array[Byte] = {
-    val buf = ArrayBuffer.empty[Byte]
-    checkCall(_LIB.mxNDArraySaveRawBytes(handle, buf))
-    buf.toArray
   }
 
   /**
@@ -732,19 +691,6 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
   }
 
   /**
-   * Return a reshaped NDArray that shares memory with current one.
-   *
-   * @param dims New shape.
-   *
-   * @return a reshaped NDArray that shares memory with current one.
-   */
-  def reshape(dims: Array[Int]): NDArray = {
-    val reshapeHandle = new NDArrayHandleRef
-    checkCall(_LIB.mxNDArrayReshape(handle, dims.length, dims, reshapeHandle))
-    new NDArray(handle = reshapeHandle.value, writable = this.writable)
-  }
-
-  /**
    * Block until all pending writes operations on current NDArray are finished.
    * This function will return when all the pending writes to the current
    * NDArray finishes. There can still be pending read going on when the
@@ -772,7 +718,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
    */
   def set(value: Float): NDArray = {
     require(writable, "trying to assign to a readonly NDArray")
-    NDArray.invokeGenericFunc("_set_value", Array[Any](value), Map[String, Any]("out" -> this))
+    NDArray.invokeGenericFunc("_set_value", Array[Any](value), out = Array(this))
     this
   }
 
@@ -806,8 +752,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
     if (!writable) {
       throw new IllegalArgumentException("trying to add to a readonly NDArray")
     }
-    NDArray.invokeGenericFunc("_plus_scalar", Array[Any](this, other),
-      Map[String, Any]("out" -> this))
+    NDArray.invokeGenericFunc("_plus_scalar", Array[Any](this, other), out = Array(this))
     this
   }
 
@@ -830,8 +775,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
     if (!writable) {
       throw new IllegalArgumentException("trying to subtract from a readonly NDArray")
     }
-    NDArray.invokeGenericFunc("_minus_scalar", Array[Any](this, other),
-      Map[String, Any]("out" -> this))
+    NDArray.invokeGenericFunc("_minus_scalar", Array[Any](this, other), out = Array(this))
     this
   }
 
@@ -858,8 +802,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
     if (!writable) {
       throw new IllegalArgumentException("trying to multiply to a readonly NDArray")
     }
-    NDArray.invokeGenericFunc("_mul_scalar", Array[Any](this, other),
-      Map[String, Any]("out" -> this))
+    NDArray.invokeGenericFunc("_mul_scalar", Array[Any](this, other), out = Array(this))
     this
   }
 
@@ -882,8 +825,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
     if (!writable) {
       throw new IllegalArgumentException("trying to divide from a readonly NDArray")
     }
-    NDArray.invokeGenericFunc("_div_scalar", Array[Any](this, other),
-      Map[String, Any]("out" -> this))
+    NDArray.invokeGenericFunc("_div_scalar", Array[Any](this, other), out = Array(this))
     this
   }
 

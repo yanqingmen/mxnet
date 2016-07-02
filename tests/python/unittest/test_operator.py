@@ -1,21 +1,12 @@
 # pylint: skip-file
 import numpy as np
 import mxnet as mx
-import random
 from numpy.testing import assert_allclose
 from check_utils import (check_numeric_gradient, check_symbolic_backward,
-                         check_symbolic_forward, reldiff, _np_reduce)
-
+                         check_symbolic_forward, reldiff)
 
 def same(a, b):
     return np.sum(a != b) == 0
-
-def np_softmax(x):
-    x = x - np.max(x, axis=1).reshape(x.shape[0], 1)
-    x = np.exp(x)
-    x /= np.sum(x, axis=1).reshape(x.shape[0], 1)
-    return x
-
 
 def check_elementwise_sum_with_shape(shape, n):
     # forward
@@ -230,7 +221,7 @@ def check_softmax_with_ignore_label(xpu):
 
     grad0 = grad.asnumpy()
 
-    for i in range(int(shape[0]/2)):
+    for i in range(shape[0]/2):
         l_np[i] = 0
     l[:] = l_np
 
@@ -238,27 +229,24 @@ def check_softmax_with_ignore_label(xpu):
     exec1.backward()
     grad1 = grad.asnumpy()
 
-    assert(abs(np.sum(grad1[:int(shape[0]/2)])) < 1e-5)
-    assert(reldiff(grad0[int(shape[0]/2):], grad1[int(shape[0]/2):]) < 1e-5)
+    assert abs(np.sum(grad1[:shape[0]/2])) < 1e-5
+    assert reldiff(grad0[shape[0]/2:], grad1[shape[0]/2:]) < 1e-5
 
 def check_softmax_with_shape(shape, xpu):
-    # bind with label
     X = mx.symbol.Variable('X')
     L = mx.symbol.Variable('L')
     Y = mx.symbol.SoftmaxOutput(data=X, label=L)
     x = mx.random.uniform(-1, 1, shape, ctx = xpu)
-    l = mx.random.uniform(-1, 1, shape, ctx = xpu)
-    l[:] = np_softmax(l.asnumpy())
+    l = mx.nd.empty((shape[0],), ctx = xpu)
+    l[:] = np.random.randint(0, shape[1]-1, (shape[0],))
     grad = mx.nd.empty(shape, ctx = xpu)
-    exec1 = Y.bind(xpu, args = [x, l], args_grad = {'X': grad})
-    exec1.forward()
-    out = exec1.outputs[0].asnumpy()
-    assert_allclose(out, np_softmax(x.asnumpy()))
-    exec1.backward()
-    assert_allclose(grad.asnumpy(), np_softmax(x.asnumpy()) - l.asnumpy())
 
-def test_softmax():
-    check_softmax_with_shape((3, 4), mx.cpu())
+    exec1 = Y.bind(xpu, args = [x, l], args_grad = {'X': grad})
+    print('foward')
+    exec1.forward()
+    print(exec1.outputs[0].asnumpy())
+    exec1.backward()
+    print(grad.asnumpy())
 
 def check_multi_softmax_with_shape(shape, xpu):
     X = mx.symbol.Variable('X')
@@ -635,31 +623,7 @@ def check_deconvolution_gradient(input_shape, num_filter, pad):
     exe_deconv.backward(deconv_out_grad)
     assert reldiff(conv_args_grad[1].asnumpy(), deconv_args_grad[1].asnumpy()) < 1e-6
 
-def check_deconvolution_target_shape(input_shape, kernel, stride, pad, adj, target_shape=None):
-    data = mx.sym.Variable(name="data")
-    deconv = mx.sym.Deconvolution(
-        data=data, kernel=kernel, stride=stride, pad=pad, adj=adj, num_filter=5,
-        target_shape = target_shape if target_shape is not None else (0, 0))
-    arg_names = deconv.list_arguments()
-    arg_shapes, out_shapes, _ = deconv.infer_shape(data=input_shape)
-    assert out_shapes[0] == (input_shape[0], 5, 8, 8)
-
 def test_deconvolution():
-    check_deconvolution_target_shape(
-        input_shape         = (2,3,4,4),
-        kernel              = (3,3),
-        stride              = (2,2),
-        target_shape        = (8,8),
-        pad                 = (99,99),  # will be ignored
-        adj                 = (101,101),  # will be ignored
-    )
-    check_deconvolution_target_shape(
-        input_shape         = (2,3,4,4),
-        kernel              = (3,3),
-        stride              = (2,2),
-        pad                 = (1,1),
-        adj                 = (1,1),
-    )
     check_deconvolution_forward_backward(
         input_shape         = (1,1,5,5),
         num_filter          = 1,
@@ -766,424 +730,7 @@ def test_convolution_grouping():
     for arr1, arr2 in zip(exe1.outputs + exe1.grad_arrays, exe2.outputs + exe2.grad_arrays):
         np.testing.assert_allclose(arr1.asnumpy(), arr2.asnumpy(), rtol=1e-3)
 
-def _gen_broadcast_data():
-    # Generate random data that has ndim between 1-7 and all the shape dims between 1-10
-    ndim = np.random.randint(1, 8)
-    shape = np.random.randint(1, 11, size=(ndim,))
-    l_same_dim = np.random.randint(0, 5)
-    r_same_dim = np.random.randint(0, 5)
-    l_axis_flags = np.random.randint(0, 2, size=ndim)
-    r_axis_flags = np.random.randint(0, 2, size=ndim)
-    if l_same_dim == 4:
-        l_axis_flags = np.ones(ndim)
-    if r_same_dim == 4:
-        r_axis_flags = np.ones(ndim)
-    l_shape = shape.copy()
-    r_shape = shape.copy()
-    l_shape[np.where(l_axis_flags == 0)] = 1
-    r_shape[np.where(r_axis_flags == 0)] = 1
-    return [np.random.random(l_shape), np.random.random(r_shape)]
-
-def _check_broadcast_op_forward(symbol, baseline):
-    sample_num = 200
-    for i in range(sample_num):
-        d = _gen_broadcast_data()
-        x = baseline(d[0], d[1])
-        y = symbol.bind(mx.cpu(), args={'a': mx.nd.array(d[0]), 'b' : mx.nd.array(d[1])})
-        y.forward()
-        err = np.sum(np.abs(x - y.outputs[0].asnumpy())) / np.sum(np.abs(x))
-        assert err < 1e-4, 'error %f, shapes are %s, %s' % (
-            err, d[0].shape, d[1].shape)
-
-def _check_broadcast_op_backward(symbol, baseline):
-    sample_num = 200
-    for i in range(sample_num):
-        d = _gen_broadcast_data()
-        out = np.random.random((d[0] + d[1]).shape)
-        def reduce_op(shape, x):
-            if shape == x.shape:
-                return x
-            keepdims_shape = list(x.shape)
-            for i in range(len(shape)):
-                if x.shape[i] != shape[i]:
-                    keepdims_shape[i] = 1
-                    x = np.sum(x, axis=i).reshape(keepdims_shape)
-            return x
-        baseline_grad1, baseline_grad2 = baseline(out, d[0], d[1])
-        x_1 = reduce_op(d[0].shape, baseline_grad1)
-        x_2 = reduce_op(d[1].shape, baseline_grad2)
-        y_1 = mx.nd.empty(d[0].shape)
-        y_2 = mx.nd.empty(d[1].shape)
-        y = symbol.bind(mx.cpu(), args={'a': mx.nd.array(d[0]), 'b' : mx.nd.array(d[1])},
-                        args_grad=[y_1, y_2])
-        y.forward()
-        y.backward([mx.nd.array(out)])
-        err = lambda x, y: np.sum(np.abs(x-y)) / np.sum(np.abs(x))
-        err_1 = err(x_1, y_1.asnumpy())
-        err_2 = err(x_2, y_2.asnumpy())
-        assert err_1 < 1e-5 and err_2 < 1e-5, 'lhs error %f, rhs error %f, shapes are %s %s' % (
-            err_1, err_2, d[0].shape, d[1].shape)
-
-def test_broadcast_binary_op():
-    a = mx.sym.Variable('a')
-    b = mx.sym.Variable('b')
-
-    def test_bplus(a, b):
-        c = mx.sym.broadcast_plus(a, b)
-        _check_broadcast_op_forward(c, lambda a, b: a + b)
-        _check_broadcast_op_backward(c, lambda g_out, a, b: (g_out, g_out))
-
-    def test_bminus(a, b):
-        c = mx.sym.broadcast_minus(a, b)
-        _check_broadcast_op_forward(c, lambda a, b: a - b)
-        _check_broadcast_op_backward(c, lambda g_out, a, b: (g_out, - g_out))
-
-    def test_bmul(a, b):
-        c = mx.sym.broadcast_mul(a, b)
-        _check_broadcast_op_forward(c, lambda a, b: a * b)
-        _check_broadcast_op_backward(c, lambda g_out, a, b: (g_out * b, g_out * a))
-
-    def test_bdiv(a, b):
-        c = mx.sym.broadcast_div(a, b)
-        _check_broadcast_op_forward(c, lambda a, b: a / b)
-        _check_broadcast_op_backward(c, lambda g_out, a, b: (g_out / b, - g_out * a / (b * b)))
-
-    def test_bpow(a, b):
-        c = mx.sym.broadcast_power(a, b)
-        _check_broadcast_op_forward(c, lambda a, b: a ** b)
-        _check_broadcast_op_backward(c, lambda g_out, a, b: (g_out * a **(b - 1) * b,
-                                                             g_out * a ** b * np.log(a)))
-
-    test_bplus(a, b)
-    test_bminus(a, b)
-    test_bmul(a, b)
-    test_bdiv(a, b)
-    test_bpow(a, b)
-
-def test_run_convolution_dilated_impulse_response(dil=(1,1), kernel_shape=(3,3), verbose=False):
-    # Input for spike response
-    spike_imgs = np.zeros(shape=(1,1,33,33), dtype=np.float32)
-    spike_imgs[0,0,16,16] = 1.0
-    spike_img = mx.nd.array(spike_imgs)
-    spike_img2 = mx.nd.array(spike_imgs)
-
-
-    kernel_weights = mx.nd.ones(shape=tuple([1,1]+list(kernel_shape)), dtype=np.float32)
-    kernel_weights2 = mx.nd.ones(shape=tuple([1,1]+list(kernel_shape)), dtype=np.float32)
-
-    kernel = mx.symbol.Variable('kernel')
-    in_img = mx.symbol.Variable('input')
-    net = mx.symbol.Convolution(in_img, num_filter=1,kernel=kernel_shape, dilate=dil, no_bias="true", name='test_convolution')
-    net.list_arguments()
-    be = net.bind(mx.cpu(), args={ 'input' : spike_img, 'test_convolution_weight' : kernel_weights},
-                args_grad={'input' : spike_img2, 'test_convolution_weight' : kernel_weights2 } )
-    be.forward(True)
-    out_o = be.outputs[0].asnumpy()
-    ndo = be.outputs[0]
-
-    out_grads = np.zeros(shape=be.outputs[0].shape, dtype=np.float32)
-    out_grads[0,0, 16,16] = 1.0
-    out_grad = mx.nd.array(out_grads)
-    be.backward([out_grad])
-    vgrad = be.grad_arrays[0].asnumpy()
-    out = out_o.reshape((out_o.shape[2],out_o.shape[3]))
-    nzx,nzy = np.nonzero(out)
-    assert(np.sum(out)==np.prod(kernel_shape))
-    assert(np.sum(vgrad)==np.prod(kernel_shape))
-
-    # Now check whether the input gradient was computed correctly
-    input_grad = mx.nd.array(vgrad)
-
-    be = net.bind(mx.cpu(), args={ 'input' : input_grad, 'test_convolution_weight' : kernel_weights})
-    be.forward(True)
-    out_o = be.outputs[0].asnumpy()
-    assert(out_o[0,0,16,16]==np.prod(kernel_shape))
-
-    rnd_kernel_s = np.random.uniform(low=0.0, high=1.0, size=tuple([1,1]+list(kernel_shape))).astype(np.float32)
-    impulse_error = mx.nd.array(out_o/np.sum(out_o)) # This should be 1.0 at [0,0,16,16]
-    rnd_kernel = mx.nd.array(rnd_kernel_s)
-
-    rnd_kernel2 = mx.nd.array(rnd_kernel_s)
-    white_in = mx.nd.ones(shape=(1,1,33,33))
-    white_in2 = mx.nd.ones(shape=(1,1,33,33))
-
-    be = net.bind(mx.cpu(), args={ 'input' : white_in, 'test_convolution_weight' : rnd_kernel},
-                args_grad={'input' : white_in2, 'test_convolution_weight' : rnd_kernel2 } )
-
-    be.forward(True)
-    be.backward([impulse_error])
-    out_orig = be.outputs[0].asnumpy()
-    kernel_gradient = be.grad_arrays[1].asnumpy()
-
-    dkernel = mx.nd.array(rnd_kernel_s + kernel_gradient)
-
-    be = net.bind(mx.cpu(), args={ 'input' : white_in, 'test_convolution_weight' : dkernel})
-
-    be.forward(True)
-    out = be.outputs[0].asnumpy()
-    # Now do a simple check of the kernel gradient
-    assert(out[0,0,16,16] - np.sum(kernel_gradient) - out_orig[0,0,16,16] < 0.001)
-
-
-def test_convolution_dilated_impulse_response():
-    for dil in [ (1,1), (2,2), (3,3) ]:
-        for ks in [ (3,3), (4,4), (2,3), (3,2), (1,1) ]:
-            test_run_convolution_dilated_impulse_response(dil=dil, kernel_shape=ks)
-
-def test_reshape():
-
-    def test_reshape_new(src_shape, shape_args, dst_shape):
-        net = mx.sym.Variable("data")
-        net = mx.sym.Reshape(net, shape=shape_args)
-        js = net.tojson()
-        net = mx.sym.load_json(js)
-        _, output_shape, __ = net.infer_shape(data=src_shape)
-        assert output_shape[0] == dst_shape, \
-            'Src Shape = %s, Shape Arguments = %s, Dst Shape = %s, Output Shape = %s' \
-            %(str(src_shape), str(shape_args), str(dst_shape), str(output_shape[0]))
-        dat_npy = np.random.rand(*src_shape)
-        grad_npy = np.random.rand(*dst_shape)
-        exe = net.simple_bind(mx.cpu(), data=src_shape)
-        exe.arg_dict['data'][:] = dat_npy
-        exe.forward(is_train=True)
-        assert np.square(exe.outputs[0].asnumpy() - dat_npy.reshape(dst_shape)).mean() < 1E-7, \
-            'Src Shape = %s, Shape Arguments = %s, Dst Shape = %s' %(str(src_shape),
-                                                                     str(shape_args), str(dst_shape))
-        exe.backward(out_grads=mx.nd.array(grad_npy))
-        assert np.square(exe.grad_dict['data'].asnumpy() - grad_npy.reshape(src_shape)).mean() < 1E-7, \
-            'Src Shape = %s, Shape Arguments = %s, Dst Shape = %s' %(str(src_shape),
-                                                                     str(shape_args), str(dst_shape))
-    # Test new api (Using shape)
-    test_cases = [[(2, 3, 5, 5), (0, -1), (2, 75)],
-                  [(2, 3, 5, 5), (0, 0, -1), (2, 3, 25)],
-                  [(5, 3, 4, 5), (0, -1, 0), (5, 15, 4)],
-                  [(2, 3, 5, 4), (-1, 0, 0), (8, 3, 5),
-                  [(2, 3, 4, 5), (3, -1, 0), (3, 10, 4)],
-                  [(2, 3, 5, 5), (5, 3, 0, -1), (5, 3, 5, 2)],
-                  [(2, 3, 5, 5), (0, 0, 0, 0), (2, 3, 5, 5)],
-                  [(2, 4, 5, 3), (-1, 2, 2, 1), (30, 2, 2, 1)]]]
-    for test_case in test_cases:
-        test_reshape_new(test_case[0], test_case[1], test_case[2])
-    # Test old api
-    net = mx.sym.Variable("data")
-    net = mx.sym.Reshape(net, target_shape=(2, 0))
-    js = net.tojson()
-    net = mx.sym.load_json(js)
-    _, output_shape, __ = net.infer_shape(data=(2, 3, 5, 5))
-    assert(output_shape[0] == (2, 75))
-
-def test_reduce():
-    sample_num = 200
-    def test_reduce_inner(numpy_reduce_func, numpy_reduce_grad_func, mx_reduce_sym):
-        for i in range(sample_num):
-            # Generate random data that has ndim between 1-7 and all the shape dims between 1-10
-            ndim = np.random.randint(1, 8)
-            shape = np.random.randint(1, 11, size=(ndim,))
-            axis_num = np.random.randint(0, ndim, size=1)
-            axis_flags = np.random.randint(0, 2, size=ndim)
-            axes = []
-            for (axis, flag) in enumerate(axis_flags):
-                if flag:
-                    axes.append(axis)
-            if 0 == len(axes):
-                axes = None
-            elif 1 == len(axes):
-                axes = axes[0]
-            else:
-                axes = tuple(axes)
-            keepdims = np.random.randint(0, 2)
-            a = mx.symbol.Variable('a')
-            if axes is None:
-                b = mx_reduce_sym(a, keepdims=keepdims)
-            else:
-                b = mx_reduce_sym(a, axis=axes, keepdims=keepdims)
-            dat_npy = np.random.rand(*shape)
-            sum_groundtruth = np.array(numpy_reduce_func(dat_npy, axis=axes, keepdims=keepdims))
-            if sum_groundtruth.shape == ():
-                sum_groundtruth = np.array([sum_groundtruth])
-            grad_nd = mx.nd.empty(shape)
-            outgrad_npy = np.array(np.random.rand(*sum_groundtruth.shape))
-            grad_groundtruth = numpy_reduce_grad_func(outgrad=outgrad_npy, data=dat_npy,
-                                                      axis=axes, keepdims=keepdims)
-            net = b.bind(mx.cpu(), args={'a': mx.nd.array(dat_npy)},
-                         args_grad={'a': grad_nd})
-            net.forward(is_train=True)
-
-            err_forward = reldiff(net.outputs[0].asnumpy(), sum_groundtruth)
-            assert err_forward < 1E-4
-            net.backward(out_grads=mx.nd.array(outgrad_npy))
-            err_backward = reldiff(grad_nd.asnumpy(), grad_groundtruth)
-            assert err_backward < 1E-4
-    test_reduce_inner(lambda data, axis, keepdims:_np_reduce(data, axis, keepdims, np.sum),
-                      lambda outgrad, data, axis, keepdims:
-                        outgrad.reshape(_np_reduce(data, axis, 1, np.sum).shape),
-                      mx.symbol.sum)
-
-def test_broadcast():
-    sample_num = 200
-    for i in range(sample_num):
-        # Generate random data that has ndim between 1-7 and all the shape dims between 1-10
-        ndim = np.random.randint(1, 8)
-        target_shape = np.random.randint(1, 11, size=(ndim,))
-        axis = tuple(set(np.random.randint(0, ndim, np.random.randint(1, ndim + 1))))
-        shape = target_shape.copy()
-        size = tuple([shape[ele] for ele in axis])
-        for ele in axis:
-            shape[ele] = 1
-        a = mx.symbol.Variable('a')
-        sym_bcast_axis = mx.symbol.broadcast_axis(a, axis=axis, size=size)
-        sym_bcast_to = mx.symbol.broadcast_to(a, shape=tuple(target_shape))
-        def test_broadcasting_ele(sym_bcast):
-            dat_npy = np.random.rand(*shape)
-            groundtruth = dat_npy
-            grad_nd = mx.nd.empty(shape)
-            outgrad_npy = np.random.rand(*target_shape)
-            grad_groundtruth = _np_reduce(outgrad_npy, axis=axis, keepdims=True,
-                                          numpy_reduce_func=np.sum)
-            net = sym_bcast.bind(mx.cpu(), args={'a': mx.nd.array(dat_npy)},
-                                                 args_grad={'a': grad_nd})
-            net.forward(is_train=True)
-            assert (net.outputs[0].shape == target_shape).all()
-            err_forward = reldiff(net.outputs[0].asnumpy(), groundtruth)
-            assert err_forward < 1E-4
-            net.backward(out_grads=mx.nd.array(outgrad_npy))
-            err_backward = reldiff(grad_nd.asnumpy(), grad_groundtruth)
-            assert err_backward < 1E-4
-        test_broadcasting_ele(sym_bcast_axis)
-        test_broadcasting_ele(sym_bcast_to)
-
-def test_transpose():
-    for ndim in range(1, 6):
-        for t in range(5):
-            dims = list(np.random.randint(1, 10, size=ndim))
-            axes = list(range(ndim))
-            random.shuffle(axes)
-            axes = tuple(axes)
-            x = mx.nd.array(np.random.normal(size=dims))
-            y = mx.nd.transpose(x, axes=axes)
-            assert_allclose(np.transpose(x.asnumpy(), axes=axes), y.asnumpy())
-
-            y = mx.nd.transpose(x)
-            assert_allclose(np.transpose(x.asnumpy()), y.asnumpy())
-
-
-def test_expand_dims():
-    for ndim in range(1, 6):
-        for t in range(5):
-            dims = list(np.random.randint(1, 10, size=ndim))
-            axis = np.random.randint(1, ndim+1)
-            x = mx.nd.array(np.random.normal(size=dims))
-            y = mx.nd.expand_dims(x, axis=axis)
-            assert_allclose(np.expand_dims(x.asnumpy(), axis=axis), y.asnumpy())
-
-
-def test_crop():
-    for ndim in range(1, 6):
-        for t in range(5):
-            dims = []
-            begin = []
-            end = []
-            idx = []
-            for i in range(ndim):
-                d = random.randint(1, 10)
-                b = random.randint(0, d-1)
-                e = random.randint(b+1, d)
-                dims.append(d)
-                begin.append(b)
-                end.append(e)
-                idx.append(slice(b, e))
-            x = mx.nd.array(np.random.normal(size=dims))
-            y = mx.nd.crop(x, begin=tuple(begin), end=tuple(end))
-            assert_allclose(x.asnumpy()[idx], y.asnumpy())
-
-
-def test_slice_axis():
-    for ndim in range(1, 6):
-        shape = np.random.randint(1, 11, size=(ndim,))
-        for t in range(ndim):
-            d = shape[t]
-            b = random.randint(0, d-1)
-            e = random.randint(b+1, d)
-            idx = []
-            for i in range(ndim):
-                idx.append(slice(0, shape[i]))
-            idx[t] = slice(b, e)
-
-            X = mx.symbol.Variable('X')
-            x = mx.nd.array(np.random.normal(size=shape))
-            Y = mx.symbol.slice_axis(data=X, axis=t, begin=b, end=e)
-
-            xgrad = mx.nd.empty(x.shape)
-            exec1 = Y.bind(mx.cpu(), args = [x], args_grad = {'X': xgrad})
-            exec1.forward()
-            y = exec1.outputs[0]
-            assert_allclose(x.asnumpy()[idx], y.asnumpy())
-            exec1.backward([y])
-            xx = x.asnumpy()
-            xx[:] = 0.0
-            xx[idx] = x.asnumpy()[idx]
-            assert_allclose(xx, xgrad.asnumpy())
-
-
-def test_flip():
-    for ndim in range(1, 6):
-        for t in range(5):
-            dims = [random.randint(1,10) for i in range(ndim)]
-            axis = random.randint(0, ndim-1)
-            idx = [slice(None, None, -1) if i == axis else slice(None, None) for i in range(ndim)]
-            x = mx.nd.array(np.random.normal(size=dims))
-            y = mx.nd.flip(x, axis=axis)
-            assert_allclose(x.asnumpy()[idx], y.asnumpy())
-
-def test_stn():
-    import pdb
-    np.set_printoptions(threshold=np.nan)
-    num_filter = 2  # conv of loc net
-    kernel = (3, 3)  # conv of loc net
-    num_hidden = 6  # fc of loc net
-    for n in [1, 2, 3, 4]:
-        for c in [1, 2, 3, 4]:
-            for h in [5, 9, 13, 17]:  # for convenience test, this third and forth input dim should be 4x + 1
-                for w in [5, 9, 13, 17]:
-                    data_shape = (n, c, h, w)
-                    target_shape = (int((data_shape[2]+1)/2), int((data_shape[3]+1)/2))
-                    data = mx.sym.Variable(name="data")
-                    loc = mx.sym.Convolution(data=data, kernel=kernel, pad=(1, 1), num_filter=num_filter, name="loc_conv")
-                    loc = mx.sym.Flatten(data=loc)
-                    loc = mx.sym.FullyConnected(data=loc, num_hidden=num_hidden, name="loc_fc")
-                    stn = mx.sym.SpatialTransformer(data=data, loc=loc, target_shape=target_shape,
-                                                    transform_type="affine", sampler_type="bilinear")
-                    arg_names = stn.list_arguments()
-                    arg_shapes, out_shapes, _ = stn.infer_shape(data=data_shape)
-                    # check shape
-                    assert out_shapes[0] == (data_shape[0], data_shape[1], target_shape[0], target_shape[1])
-                    dev = mx.cpu()
-                    #dev = mx.gpu(0)
-                    args = {}
-                    args['data'] = mx.random.normal(0, 1, data_shape, dev)
-                    args['loc_conv_weight'] = mx.nd.zeros((num_filter, data_shape[1], kernel[0], kernel[1]), ctx=dev)
-                    args['loc_conv_bias'] = mx.nd.zeros((num_filter,), ctx=dev)
-                    args['loc_fc_weight'] = mx.nd.zeros((6, num_filter*data_shape[2]*data_shape[3]), ctx=dev)
-                    args['loc_fc_bias'] = mx.nd.array([0.5, 0, 0, 0, 0.5, 0], ctx=dev)
-                    grad_grad = [mx.nd.zeros(shape, ctx=dev) for shape in arg_shapes]
-                    exe = stn.bind(dev, args=args, args_grad=grad_grad)
-                    exe.forward(is_train=True)
-                    out = exe.outputs[0].asnumpy()
-                    # check forward
-                    reldiff(out, args['data'].asnumpy()[:, :, h//4:h-h//4, w//4:w-w//4]) < 1e-6
-                    out_grad = mx.nd.ones(out.shape, ctx=dev)
-                    exe.backward([out_grad])
-                    # check backward
-                    reldiff(out_grad.asnumpy(), grad_grad[0].asnumpy()[:, :, h//4:h-h//4, w//4:w-w//4]) < 1e-6
-
 if __name__ == '__main__':
-    test_expand_dims()
-    test_slice_axis()
-    test_softmax()
-    test_broadcast_binary_op()
-    test_flip()
-    test_crop()
-    test_transpose()
     test_convolution_grouping()
     test_nearest_upsampling()
     test_binary_op_duplicate_input()
@@ -1193,7 +740,7 @@ if __name__ == '__main__':
     test_regression()
     test_python_op()
     test_swapaxes()
-    test_scalarop()
+    test_scalarop();
     test_scalar_pow()
     test_symbol_pow()
     test_pow_fn()
@@ -1206,8 +753,5 @@ if __name__ == '__main__':
     test_deconvolution()
     test_batchnorm_training()
     check_softmax_with_ignore_label(mx.cpu())
-    test_convolution_dilated_impulse_response()
-    test_reshape()
-    test_reduce()
-    test_broadcast()
-    test_stn()
+    #check_softmax_with_shape((3,4), mx.cpu())
+    #check_multi_softmax_with_shape((3,4,5), mx.cpu())

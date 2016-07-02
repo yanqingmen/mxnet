@@ -22,6 +22,7 @@ endif
 include $(config)
 include mshadow/make/mshadow.mk
 include $(DMLC_CORE)/make/dmlc.mk
+unexport NO_OPENMP
 
 # all tge possible warning tread
 WARNFLAGS= -Wall
@@ -36,9 +37,9 @@ endif
 CFLAGS += -I$(ROOTDIR)/mshadow/ -I$(ROOTDIR)/dmlc-core/include -fPIC -Iinclude $(MSHADOW_CFLAGS)
 LDFLAGS = -pthread $(MSHADOW_LDFLAGS) $(DMLC_LDFLAGS)
 ifeq ($(DEBUG), 1)
-	NVCCFLAGS = -Xcompiler -std=c++98 -D_FORCE_INLINES -g -G -O0 -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+	NVCCFLAGS = -g -G -O0 -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 else
-	NVCCFLAGS = -Xcompiler -std=c++98 -D_FORCE_INLINES -g -O3 -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+	NVCCFLAGS = --use_fast_math -g -O3 -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 endif
 
 ifndef LINT_LANG
@@ -124,7 +125,7 @@ else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S), Darwin)
 		SCALA_PKG_PROFILE := osx-x86_64
-	else
+	else     
 		SCALA_PKG_PROFILE := linux-x86_64
 	endif
 endif
@@ -212,7 +213,7 @@ lint: rcpplint jnilint
 doc: doxygen
 
 doxygen:
-	doxygen docs/Doxyfile
+	doxygen doc/Doxyfile
 
 # R related shortcuts
 rcpplint:
@@ -236,26 +237,26 @@ rpkg:	roxygen
 scalapkg:
 	(cd $(ROOTDIR)/scala-package; \
 		mvn clean package -P$(SCALA_PKG_PROFILE) -Dcxx="$(CXX)" \
-			-Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
-			-Dlddeps="$(LIB_DEP)")
+											-Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
+											-Dlddeps="$(LIB_DEP)")
 
 scalatest:
 	(cd $(ROOTDIR)/scala-package; \
 		mvn verify -P$(SCALA_PKG_PROFILE) -Dcxx="$(CXX)" \
-			-Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
-			-Dlddeps="$(LIB_DEP)" $(SCALA_TEST_ARGS))
+							 -Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
+							 -Dlddeps="$(LIB_DEP)" $(SCALA_TEST_ARGS))
 
 scalainstall:
 	(cd $(ROOTDIR)/scala-package; \
 		mvn install -P$(SCALA_PKG_PROFILE) -DskipTests -Dcxx="$(CXX)" \
-			-Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
-			-Dlddeps="$(LIB_DEP)")
+							  -Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
+								-Dlddeps="$(LIB_DEP)")
 
 scaladeploy:
 	(cd $(ROOTDIR)/scala-package; \
 		mvn deploy -Prelease,$(SCALA_PKG_PROFILE) -DskipTests -Dcxx="$(CXX)" \
-			-Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
-			-Dlddeps="$(LIB_DEP)")
+							 -Dcflags="$(CFLAGS)" -Dldflags="$(LDFLAGS)" \
+							 -Dlddeps="$(LIB_DEP)")
 
 jnilint:
 	python2 dmlc-core/scripts/lint.py mxnet-jnicpp cpp scala-package/native/src

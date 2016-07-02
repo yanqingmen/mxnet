@@ -13,18 +13,12 @@
 namespace mxnet {
 namespace op {
 template<>
-Operator* CreateOp<gpu>(DeconvolutionParam param, int dtype) {
-  Operator *op = NULL;
+Operator* CreateOp<gpu>(DeconvolutionParam param) {
 #if MXNET_USE_CUDNN == 1
-  MSHADOW_REAL_TYPE_SWITCH(dtype, DType, {
-    op = new CuDNNDeconvolutionOp<DType>(param);
-  });
+  return new CuDNNDeconvolutionOp(param);
 #else
-  MSHADOW_REAL_TYPE_SWITCH(dtype, DType, {
-    op = new DeconvolutionOp<gpu, DType>(param);
-  });
+  return new DeconvolutionOp<gpu>(param);
 #endif  // MXNET_USE_CUDNN
-  return op;
 }
 
 }  // namespace op

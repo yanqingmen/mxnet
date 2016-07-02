@@ -11,10 +11,6 @@
 #ifndef MXNET_OPERATOR_UTIL_H_
 #define MXNET_OPERATOR_UTIL_H_
 
-#ifdef _MSC_VER
-#pragma warning(disable:4503)  // disable warning: decorated name length exceeded.
-#endif
-
 #include <dmlc/registry.h>
 #include <dmlc/parameter.h>
 #include <map>
@@ -59,26 +55,6 @@ struct EnvArguments {
   /*! \brief pointer to the resources requested */
   std::vector<Resource> resource;
 };
-
-/*!
- * \brief source function that generate output based on env
- *  The result container is pre-allocated with the correct shape.
- * \param env The Environment arguments.
- * \param ret The containter to store return value.
- * \param req The requirement to stroe the ret.
- * \param ctx Runtime context to execute the function.
- */
-typedef void (*SourceFunction)(const EnvArguments& env,
-                               TBlob* ret,
-                               OpReqType req,
-                               RunContext ctx);
-
-/*!
- * \brief Shape inference function to get the correct shape.
- * \param env The Environment arguments.
- * \return The inferred result shape.
- */
-typedef TShape (*SourceShapeFunction)(const EnvArguments& env);
 
 /*!
  * \brief Unary function that takes a src and save result to ret.
@@ -252,7 +228,7 @@ class SimpleOpRegEntry {
    *  Default: this is set to be same as the name of operator.
    * \param symbol_name the name of symbolic operator.
    */
-  virtual TSelf& set_symbol_op_name(char const* symbol_name) = 0;
+  virtual TSelf& set_symbol_op_name(const std::string& symbol_name) = 0;
   /*!
    * \brief set number of scalar arguments needed to be passed in env
    *  A function cannot have both kwargs and scalar arguments.
@@ -286,11 +262,6 @@ class SimpleOpRegEntry {
    */
   virtual TSelf& set_resource_request(ResourceRequest req) = 0;
   /*!
-   * \brief set source inference function.
-   * \param fshapeinfer The source function that peforms the operation.
-   */
-  virtual TSelf& set_shape_function(SourceShapeFunction fshapeinfer) = 0;
-  /*!
    * \brief set shape inference function.
    *  Default: out_shape = in_shape
    * \param fshapeinfer The unary function that peforms the operation.
@@ -302,16 +273,6 @@ class SimpleOpRegEntry {
    * \param fshapeinfer The binary function that peforms the operation.
    */
   virtual TSelf& set_shape_function(BinaryShapeFunction fshapeinfer) = 0;
-  /*!
-   * \brief set function of the function to be fsource
-   * \param dev_mask The device mask of the function can act on.
-   * \param fsource The unary function that peforms the operation.
-   * \param register_symbolic Whether register a symbolic operator as well.
-   */
-  virtual TSelf& set_function(
-      int dev_mask,
-      SourceFunction fsource,
-      SimpleOpRegOption register_symbolic = kRegisterSymbolic) = 0;
   /*!
    * \brief set function of the function to be funary
    * \param dev_mask The device mask of the function can act on.
@@ -406,7 +367,7 @@ class SimpleOpRegistry {
    * \param name name of the function
    * \return ref to the registered entry, used to set properties
    */
-  SimpleOpRegEntry &__REGISTER_OR_FIND__(char const* name);
+  SimpleOpRegEntry &__REGISTER_OR_FIND__(const std::string& name);
   /*!
    * \brief Find the entry with corresponding name.
    * \param name name of the function
@@ -449,12 +410,6 @@ class SimpleOpRegistry {
         LOG(FATAL) << "not reached";    \
     }                                   \
   }
-
-/*!
-* \brief Maximum ndim supported for special operators like broadcasting with non contiguous lhs/rhs
-*/
-#define MXNET_SPECIAL_MAX_NDIM 7
-
 
 //--------------------------------------------------------------
 // The following part are API Registration of Simple Operators

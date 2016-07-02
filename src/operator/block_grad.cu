@@ -9,12 +9,8 @@
 namespace mxnet {
 namespace op {
 template<>
-Operator *CreateOp<gpu>(int dtype) {
-  Operator *op = NULL;
-  MSHADOW_REAL_TYPE_SWITCH(dtype, DType, {
-    op = new BlockGradientOp<gpu, DType>();
-  });
-  return op;
+Operator *CreateOp<gpu>() {
+  return new BlockGradientOp<gpu>();
 }
 
 }  // namespace op

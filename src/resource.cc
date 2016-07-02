@@ -22,52 +22,24 @@ struct SpaceAllocator {
   Context ctx;
   // internal handle
   Storage::Handle handle;
-  // internal CPU handle
-  Storage::Handle host_handle;
-  // The old handles that need to be kept valid
-  // until release is called.
-  // This API allows several CUDA calls using
-  // temp space to get valid space until all the calls finished.
-  std::vector<Storage::Handle> old_handles;
 
   SpaceAllocator() {
     handle.dptr = nullptr;
     handle.size = 0;
-    host_handle.dptr = nullptr;
-    host_handle.size = 0;
   }
 
   inline void Release() {
-    for (const Storage::Handle& handle : old_handles) {
-      if (handle.size != 0) {
-        Storage::Get()->Free(handle);
-      }
+    if (handle.size != 0) {
+      Storage::Get()->Free(handle);
+      handle.size = 0;
     }
-    old_handles.clear();
-  }
-
-  inline void ReleaseAll() {
-    old_handles.push_back(handle);
-    old_handles.push_back(host_handle);
-    this->Release();
-    handle.size = 0;
-    host_handle.size = 0;
   }
 
   inline void* GetSpace(size_t size) {
     if (handle.size >= size) return handle.dptr;
-    old_handles.push_back(handle);
-    handle = Storage::Get()->Alloc(
-        std::max(size, handle.size * 2), ctx);
+    this->Release();
+    handle = Storage::Get()->Alloc(size, ctx);
     return handle.dptr;
-  }
-
-  inline void* GetHostSpace(size_t size) {
-    if (host_handle.size >= size) return host_handle.dptr;
-    old_handles.push_back(host_handle);
-    host_handle = Storage::Get()->Alloc(
-        std::max(size, handle.size * 2), Context());
-    return host_handle.dptr;
   }
 };
 
@@ -213,7 +185,7 @@ class ResourceManagerImpl : public ResourceManager {
         Engine::Get()->DeleteVariable(
             [r](RunContext rctx){
               SpaceAllocator rcpy = r;
-              MSHADOW_CATCH_ERROR(rcpy.ReleaseAll());
+              MSHADOW_CATCH_ERROR(rcpy.Release());
             }, ctx, resource[i].var);
       }
     }
@@ -254,14 +226,6 @@ class ResourceManagerImpl : public ResourceManager {
 
 void* Resource::get_space_internal(size_t size) const {
   return static_cast<resource::SpaceAllocator*>(ptr_)->GetSpace(size);
-}
-
-void* Resource::get_host_space_internal(size_t size) const {
-  return static_cast<resource::SpaceAllocator*>(ptr_)->GetHostSpace(size);
-}
-
-void Resource::release() const {
-  return static_cast<resource::SpaceAllocator*>(ptr_)->Release();
 }
 
 ResourceManager* ResourceManager::Get() {

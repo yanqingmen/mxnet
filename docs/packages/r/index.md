@@ -20,7 +20,6 @@ Tutorials
 * [Handwritten Digits Classification Competition](mnistCompetition.md)
 * [Tutorial on NDArray and Symbol](ndarrayAndSymbolTutorial.md)
 * [Tutorial on Callback Functions](CallbackFunctionTutorial.md)
-* [Character Language Model using RNN Model](CharRnnModel.md)
 
 Resources
 ---------

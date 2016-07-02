@@ -1,7 +1,7 @@
 package ml.dmlc.mxnet
 
 import ml.dmlc.mxnet.Base._
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
@@ -15,7 +15,6 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
  */
 // scalastyle:off finalize
 class Symbol private(private[mxnet] val handle: SymbolHandle) {
-  private val logger: Logger = LoggerFactory.getLogger(classOf[Symbol])
   private var disposed = false
 
   override protected def finalize(): Unit = {
@@ -387,7 +386,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) {
       // TODO: NDArray dtype
       NDArray.zeros(shape, ctx)
     }
-    bind(ctx, argNDArrays, gradNDArrays, gradReq, auxNDArrays, null, null)
+    bind(ctx, argNDArrays, gradNDArrays, gradReq, auxNDArrays, null)
   }
 
   /**
@@ -421,10 +420,6 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) {
    *                    to the corresponding NDArray,
    *                  - In either case, all the auxiliary_states need to be provided.
    * @param group2ctx The dict mapping the ``ctx_group`` attribute to the context assignment.
-   * @param sharedExec Executor to share memory with.
-   *                 - This is intended for runtime reshaping, variable length sequences, etc.
-   *                 - The returned executor shares state with shared_exec,
-   *                   and should not be used in parallel with it.
    * @return The generated Executor
    * @note
    * Auxiliary states are special states of symbols that do not corresponds to an argument,
@@ -437,228 +432,212 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) {
    */
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Seq[NDArray],
            gradReq: String, auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Seq[NDArray],
            gradReq: String, auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Map[String, NDArray],
            gradReq: String, auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Map[String, NDArray],
            gradReq: String, auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Seq[NDArray],
            gradReq: String, auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Seq[NDArray],
            gradReq: String, auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Map[String, NDArray],
            gradReq: String, auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Map[String, NDArray],
            gradReq: String, auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, argsGrad,
-               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx, sharedExec)
+               Seq.fill(symbolArguments.size)(gradReq), auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Seq[NDArray],
            gradsReq: Seq[String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Seq[NDArray],
            gradsReq: Seq[String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Seq[String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Seq[String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Seq[NDArray],
            gradsReq: Seq[String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Seq[NDArray],
            gradsReq: Seq[String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Seq[String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Seq[String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Seq[NDArray],
            gradsReq: Map[String, String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Seq[NDArray],
            gradsReq: Map[String, String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Map[String, String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Map[String, String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Seq[NDArray],
            gradsReq: Map[String, String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Seq[NDArray],
            gradsReq: Map[String, String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Map[String, String], auxStates: Seq[NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Map[String, NDArray],
            gradsReq: Map[String, String], auxStates: Map[String, NDArray],
-           group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+           group2ctx: Map[String, Context]): Executor = {
     val symbolArguments = listArguments()
-    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx,
-      sharedExec)
+    bindHelper(ctx, symbolArguments, args, argsGrad, gradsReq, auxStates, group2ctx)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Seq[NDArray]): Executor = {
-    bind(ctx, args, argsGrad, "write", Nil, null, null)
+    bind(ctx, args, argsGrad, "write", Nil, null)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Map[String, NDArray]): Executor = {
-    bind(ctx, args, argsGrad, "write", Nil, null, null)
+    bind(ctx, args, argsGrad, "write", Nil, null)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray], argsGrad: Seq[NDArray]): Executor = {
-    bind(ctx, args, argsGrad, "write", Nil, null, null)
+    bind(ctx, args, argsGrad, "write", Nil, null)
   }
 
   def bind(ctx: Context, args: Seq[NDArray], argsGrad: Map[String, NDArray]): Executor = {
-    bind(ctx, args, argsGrad, "write", Nil, null, null)
+    bind(ctx, args, argsGrad, "write", Nil, null)
   }
 
   def bind(ctx: Context, args: Seq[NDArray]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, null,
-               Seq.fill(symbolArguments.size)("write"), Nil, null, null)
+               Seq.fill(symbolArguments.size)("write"), Nil, null)
   }
 
   def bind(ctx: Context, args: Map[String, NDArray]): Executor = {
     val symbolArguments = listArguments()
     bindHelper(ctx, symbolArguments, args, null,
-      Seq.fill(symbolArguments.size)("write"), Nil, null, null)
+      Seq.fill(symbolArguments.size)("write"), Nil, null)
   }
 
   private def bindHelper(ctx: Context, symbolArguments: Seq[String],
                          args: Iterable[_], argsGrad: Iterable[_],
                          gradsReq: Iterable[_], auxStates: Iterable[_],
-                         group2ctx: Map[String, Context], sharedExec: Executor): Executor = {
+                         group2ctx: Map[String, Context]): Executor = {
     require(args != null && !args.isInstanceOf[Set[_]])
     require(argsGrad == null || !argsGrad.isInstanceOf[Set[_]])
     require(auxStates == null || !auxStates.isInstanceOf[Set[_]])
@@ -725,8 +704,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) {
     }
 
     val execHandle = new ExecutorHandleRef
-    val sharedHadle = if (sharedExec != null) sharedExec.handle else 0L
-    checkCall(_LIB.mxExecutorBindEX(handle,
+    checkCall(_LIB.mxExecutorBindX(handle,
                                    ctx.deviceTypeid,
                                    ctx.deviceId,
                                    ctxMapKeys.size,
@@ -738,19 +716,11 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) {
                                    argsGradHandle,
                                    reqsArray,
                                    auxArgsHandle,
-                                   sharedHadle,
                                    execHandle))
-    val executor = new Executor(execHandle.value, this.clone())
+    val executor = new Executor(execHandle.value, this)
     executor.argArrays = argsNDArray
     executor.gradArrays = argsGradNDArray
     executor.auxArrays = auxStatesNDArray
-    executor._ctx = new Context(ctx.deviceType, ctx.deviceId)
-    executor._gradsReq = gradsReq
-    executor._group2ctx =
-      if (group2ctx == null) null
-      else group2ctx.map { case (key, value) =>
-        (key -> new Context(value.deviceType, value.deviceId))
-      }.toMap
     executor
   }
 
@@ -836,14 +806,6 @@ object Symbol {
   }
 
   /**
-   * Take sum of the src
-   * @param src Source symbolic input to the function
-   */
-  def sum(src: Symbol): Symbol = {
-    createFromListedSymbols("sum")(Array(src))
-  }
-
-  /**
    * Take sqrt of the src
    * src Source symbolic input to the function
    */
@@ -889,14 +851,6 @@ object Symbol {
    */
   def sin(src: Symbol): Symbol = {
     createFromListedSymbols("sin")(Array(src))
-  }
-
-  /**
-   * Return transpose of the src
-   * @param src Source symbolic input to the function
-   */
-  def transpose(src: Symbol): Symbol = {
-    createFromListedSymbols("transpose")(Array(src))
   }
 
   def max(left: Symbol, right: Symbol): Symbol = {
@@ -1553,18 +1507,6 @@ object Symbol {
   def load(fname: String): Symbol = {
     val handle = new SymbolHandleRef
     checkCall(_LIB.mxSymbolCreateFromFile(fname, handle))
-    new Symbol(handle.value)
-  }
-
-  /**
-   * Load symbol from json string.
-   * @param json A json string.
-   * @return The loaded symbol.
-   * @see Symbol.tojson : Used to save symbol into json string.
-   */
-  def loadJson(json: String): Symbol = {
-    val handle = new SymbolHandleRef
-    checkCall(_LIB.mxSymbolCreateFromJSON(json, handle))
     new Symbol(handle.value)
   }
 }

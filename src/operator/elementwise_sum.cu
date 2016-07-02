@@ -7,12 +7,8 @@
 namespace mxnet {
 namespace op {
 template<>
-Operator* CreateOp<gpu>(ElementWiseSumParam param, int dtype) {
-  Operator *op = NULL;
-  MSHADOW_REAL_TYPE_SWITCH(dtype, DType, {
-    op = new ElementWiseSumOp<gpu, DType>(param);
-  });
-  return op;
+Operator* CreateOp<gpu>(ElementWiseSumParam param) {
+  return new ElementWiseSumOp<gpu>(param);
 }
 }  // namespace op
 }  // namespace mxnet

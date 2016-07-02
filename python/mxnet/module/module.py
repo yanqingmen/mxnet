@@ -169,24 +169,18 @@ class Module(BaseModule):
         def _impl(name, arr, cache):
             """Internal helper for parameter initialization"""
             if cache is not None:
-                if name in cache:
-                    cache_arr = cache[name]
-
-                    # just in case the cached array is just the target itself
-                    if cache_arr is not arr:
-                        cache_arr.copyto(arr)
+                if cache.has_key(name):
+                    cache[name].copyto(arr)
                 else:
-                    if not allow_missing:
-                        raise RuntimeError("%s is not presented" % name)
-                    if initializer != None:
-                        initializer(name, arr)
+                    assert allow_missing
+                    initializer(name, arr)
             else:
                 initializer(name, arr)
 
-        for name, arr in self._arg_params.items():
+        for name, arr in self._arg_params.iteritems():
             _impl(name, arr, arg_params)
 
-        for name, arr in self._aux_params.items():
+        for name, arr in self._aux_params.iteritems():
             _impl(name, arr, aux_params)
 
         self.params_initialized = True
@@ -301,18 +295,12 @@ class Module(BaseModule):
             if kvstore and kvstore.type == 'dist_sync':
                 batch_size *= kvstore.num_workers
             idx2name = {}
-            if update_on_kvstore:
-                idx2name.update(enumerate(self._exec_group.param_names))
-            else:
-                for k in range(len(self._context)):
-                    idx2name.update({i*len(self._context)+k: n
-                                     for i, n in enumerate(self._exec_group.param_names)})
-            optimizer_params = dict(optimizer_params)
-            if 'rescale_grad' not in optimizer_params:
-                optimizer_params['rescale_grad'] = 1.0/batch_size
-            optimizer = opt.create(optimizer,
+            for k in range(len(self._context)):
+                idx2name.update({i*len(self._context)+k: n
+                                 for i, n in enumerate(self._exec_group.param_names)})
+            optimizer = opt.create(optimizer, rescale_grad=(1.0/batch_size),
                                    sym=self.symbol, param_idx2name=idx2name,
-                                   **optimizer_params)
+                                   **dict(optimizer_params))
         else:
             assert isinstance(optimizer, opt.Optimizer)
 

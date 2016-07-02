@@ -41,14 +41,7 @@ mx.io.arrayiter <- function(data, label,
                             batch.size=128,
                             shuffle=FALSE) {
   if (shuffle) {
-    shape <- dim(data)
-    if (is.null(shape)) {
-      num.data <- length(data)
-    } else {
-      ndim <- length(shape)
-      num.data <- shape[[ndim]]
-    }
-    unif.rnds <- as.array(mx.runif(c(num.data), ctx=mx.cpu()));
+    unif.rnds <- as.array(mx.runif(c(length(label)), ctx=mx.cpu()));
   } else {
     unif.rnds <- as.array(0)
   }

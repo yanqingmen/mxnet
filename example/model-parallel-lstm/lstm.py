@@ -59,7 +59,7 @@ def lstm_unroll(num_lstm_layer, seq_len, input_size,
             param_cells.append(LSTMParam(i2h_weight = mx.sym.Variable("l%d_i2h_weight" % i),
                                          i2h_bias = mx.sym.Variable("l%d_i2h_bias" % i),
                                          h2h_weight = mx.sym.Variable("l%d_h2h_weight" % i),
-                                         h2h_bias = mx.sym.Variable("l%d_h2h_bias" % i)))
+                                     h2h_bias = mx.sym.Variable("l%d_h2h_bias" % i)))
             state = LSTMState(c=mx.sym.Variable("l%d_init_c" % i),
                               h=mx.sym.Variable("l%d_init_h" % i))
         last_states.append(state)
@@ -145,15 +145,9 @@ def setup_rnn_model(default_ctx,
                     batch_size, input_size,
                     initializer, dropout=0.,
                     group2ctx=None, concat_decode=True,
-                    use_loss=False, buckets=None):
+                    use_loss=False):
     """set up rnn model with lstm cells"""
-    max_len = max(buckets)
-    max_rnn_exec = None
-    models = {}
-    buckets.reverse()
-    for bucket_key in buckets:
-        # bind max_len first 
-        rnn_sym = lstm_unroll(num_lstm_layer=num_lstm_layer,
+    rnn_sym = lstm_unroll(num_lstm_layer=num_lstm_layer,
                           num_hidden=num_hidden,
                           seq_len=seq_len,
                           input_size=input_size,
@@ -162,81 +156,68 @@ def setup_rnn_model(default_ctx,
                           dropout=dropout,
                           concat_decode=concat_decode,
                           use_loss=use_loss)
-        arg_names = rnn_sym.list_arguments()
-        internals = rnn_sym.get_internals()
+    arg_names = rnn_sym.list_arguments()
+    internals = rnn_sym.get_internals()
 
-        input_shapes = {}
-        for name in arg_names:
-            if name.endswith("init_c") or name.endswith("init_h"):
-                input_shapes[name] = (batch_size, num_hidden)
-            elif name.endswith("data"):
-                input_shapes[name] = (batch_size, )
-            elif name == "label":
-                input_shapes[name] = (batch_size * seq_len, )
-            elif name.endswith("label"):
-                input_shapes[name] = (batch_size, )
-            else:
-                pass
-
-        arg_shape, out_shape, aux_shape = rnn_sym.infer_shape(**input_shapes)
-        # bind arrays
-        arg_arrays = []
-        args_grad = {}
-        for shape, name in zip(arg_shape, arg_names):
-            group = internals[name].attr("ctx_group")
-            ctx = group2ctx[group] if group is not None else default_ctx
-            arg_arrays.append(mx.nd.zeros(shape, ctx))
-            if is_param_name(name):
-                args_grad[name] = mx.nd.zeros(shape, ctx)
-            if not name.startswith("t"):
-                print("%s group=%s, ctx=%s" % (name, group, str(ctx)))
-        
-        #bind with shared executor
-        rnn_exec = None
-        if max_len == bucket_key:
-              rnn_exec = rnn_sym.bind(default_ctx, args=arg_arrays,
-                                args_grad=args_grad,
-                                grad_req="add", group2ctx=group2ctx)
-              max_rnn_exec = rnn_exec
+    input_shapes = {}
+    for name in arg_names:
+        if name.endswith("init_c") or name.endswith("init_h"):
+            input_shapes[name] = (batch_size, num_hidden)
+        elif name.endswith("data"):
+            input_shapes[name] = (batch_size, )
+        elif name == "label":
+            input_shapes[name] = (batch_size * seq_len, )
+        elif name.endswith("label"):
+            input_shapes[name] = (batch_size, )
         else:
-              assert max_rnn_exec != None
-              rnn_exec = rnn_sym.bind(default_ctx, args=arg_arrays,
+            pass
+
+    arg_shape, out_shape, aux_shape = rnn_sym.infer_shape(**input_shapes)
+    # bind arrays
+    arg_arrays = []
+    args_grad = {}
+    for shape, name in zip(arg_shape, arg_names):
+        group = internals[name].attr("ctx_group")
+        ctx = group2ctx[group] if group is not None else default_ctx
+        arg_arrays.append(mx.nd.zeros(shape, ctx))
+        if is_param_name(name):
+            args_grad[name] = mx.nd.zeros(shape, ctx)
+        if not name.startswith("t"):
+            print("%s group=%s, ctx=%s" % (name, group, str(ctx)))
+
+    rnn_exec = rnn_sym.bind(default_ctx, args=arg_arrays,
                             args_grad=args_grad,
-                            grad_req="add", group2ctx=group2ctx,
-                            shared_exec = max_rnn_exec)
+                            grad_req="add", group2ctx=group2ctx)
+    param_blocks = []
+    arg_dict = dict(zip(arg_names, rnn_exec.arg_arrays))
+    for i, name in enumerate(arg_names):
+        if is_param_name(name):
+            initializer(name, arg_dict[name])
+            param_blocks.append((i, arg_dict[name], args_grad[name], name))
+        else:
+            assert name not in args_grad
 
-        param_blocks = []
-        arg_dict = dict(zip(arg_names, rnn_exec.arg_arrays))
-        for i, name in enumerate(arg_names):
-            if is_param_name(name):
-                initializer(name, arg_dict[name])
-                param_blocks.append((i, arg_dict[name], args_grad[name], name))
-            else:
-                assert name not in args_grad
+    out_dict = dict(zip(rnn_sym.list_outputs(), rnn_exec.outputs))
 
-        out_dict = dict(zip(rnn_sym.list_outputs(), rnn_exec.outputs))
-
-        init_states = [LSTMState(c=arg_dict["l%d_init_c" % i],
+    init_states = [LSTMState(c=arg_dict["l%d_init_c" % i],
                              h=arg_dict["l%d_init_h" % i]) for i in range(num_lstm_layer)]
 
-        seq_data = [rnn_exec.arg_dict["t%d_data" % i] for i in range(seq_len)]
-        # we don't need to store the last state 
-        last_states = None
+    seq_data = [rnn_exec.arg_dict["t%d_data" % i] for i in range(seq_len)]
+    last_states = [LSTMState(c=out_dict["l%d_last_c_output" % i],
+                             h=out_dict["l%d_last_h_output" % i]) for i in range(num_lstm_layer)]
 
-        if concat_decode:
-            seq_outputs = [out_dict["sm_output"]]
-            seq_labels = [rnn_exec.arg_dict["label"]]
-        else:
-            seq_outputs = [out_dict["t%d_sm_output" % i] for i in range(seq_len)]
-            seq_labels = [rnn_exec.arg_dict["t%d_label" % i] for i in range(seq_len)]
+    if concat_decode:
+        seq_outputs = [out_dict["sm_output"]]
+        seq_labels = [rnn_exec.arg_dict["label"]]
+    else:
+        seq_outputs = [out_dict["t%d_sm_output" % i] for i in range(seq_len)]
+        seq_labels = [rnn_exec.arg_dict["t%d_label" % i] for i in range(seq_len)]
 
-        model = LSTMModel(rnn_exec=rnn_exec, symbol=rnn_sym,
+    return LSTMModel(rnn_exec=rnn_exec, symbol=rnn_sym,
                      init_states=init_states, last_states=last_states,
                      seq_data=seq_data, seq_labels=seq_labels, seq_outputs=seq_outputs,
                      param_blocks=param_blocks)
-        models[bucket_key] = model
-    buckets.reverse()    
-    return models
+
 
 
 def set_rnn_inputs(m, X, begin):
@@ -253,63 +234,56 @@ def set_rnn_inputs(m, X, begin):
         else:
             m.seq_labels[seqidx][:] = y
 
-def set_rnn_inputs_from_batch(m, batch, batch_seq_length, batch_size):
-  X = batch.data
-  for seqidx in range(batch_seq_length):
-    idx = seqidx 
-    next_idx = (seqidx + 1) % batch_seq_length
-    x = X[idx, :]
-    y = X[next_idx, :]
-    mx.nd.array(x).copyto(m.seq_data[seqidx])
-    if len(m.seq_labels) == 1:
-      m.seq_labels[0][seqidx*batch_size : seqidx*batch_size+batch_size] = y
-    else:
-      m.seq_labels[seqidx][:] = y
 
-def calc_nll_concat(seq_label_probs, batch_size):
-  return -np.sum(np.log(seq_label_probs.asnumpy())) / batch_size
+def calc_nll_concat(seq_label_probs, X, begin):
+    return -np.sum(np.log(seq_label_probs.asnumpy())) / len(X[0,:])
 
-
-def calc_nll(seq_label_probs, batch_size, seq_len):
-  eps = 1e-10
-  nll = 0.
-  for seqidx in range(seq_len):
-    py = seq_label_probs[seqidx].asnumpy()
-    nll += -np.sum(np.log(np.maximum(py, eps))) / batch_size
+def calc_nll(seq_label_probs, X, begin):
+    eps = 1e-10
+    nll = 0.
+    for seqidx in range(len(seq_label_probs)):
+        next_idx = (begin + seqidx + 1) % X.shape[0]
+        y = X[next_idx, :]
+        py = seq_label_probs[seqidx].asnumpy()
+        nll += -np.sum(np.log(np.maximum(py, eps))) / len(y)
     return nll
 
-
 def train_lstm(model, X_train_batch, X_val_batch,
-               num_round, update_period, concat_decode, batch_size, use_loss,
+               num_round, update_period, concat_decode, use_loss,
                optimizer='sgd', half_life=2,max_grad_norm = 5.0, **kwargs):
+    print("Training with train.shape=%s" % str(X_train_batch.shape))
+    print("Training with val.shape=%s" % str(X_val_batch.shape))
+    m = model
+    seq_len = len(m.seq_data)
+    batch_size = m.seq_data[0].shape[0]
+    print("batch_size=%d" % batch_size)
+    print("seq_len=%d" % seq_len)
+
     opt = mx.optimizer.create(optimizer,
                               **kwargs)
 
     updater = mx.optimizer.get_updater(opt)
     epoch_counter = 0
-    #log_period = max(1000 / seq_len, 1)
-    log_period = 28
+    log_period = max(1000 / seq_len, 1)
     last_perp = 10000000.0
+
+    head_grad = []
+    if use_loss:
+        ctx = m.seq_outputs[0].context
+        head_grad = [mx.nd.ones((1,), ctx) for x in m.seq_outputs]
 
     for iteration in range(num_round):
         nbatch = 0
         train_nll = 0
+        # reset states
+        for state in m.init_states:
+            state.c[:] = 0.0
+            state.h[:] = 0.0
         tic = time.time()
-        for data_batch in X_train_batch:  
-            batch_seq_length = data_batch.bucket_key
-            m = model[batch_seq_length]
-            # reset init state
-            for state in m.init_states:
-              state.c[:] = 0.0
-              state.h[:] = 0.0
-              
-            head_grad = []
-            if use_loss:
-              ctx = m.seq_outputs[0].context
-              head_grad = [mx.nd.ones((1,), ctx) for x in m.seq_outputs]
-
-            set_rnn_inputs_from_batch(m, data_batch, batch_seq_length, batch_size)  
-
+        assert X_train_batch.shape[0] % seq_len == 0
+        assert X_val_batch.shape[0] % seq_len == 0
+        for begin in range(0, X_train_batch.shape[0], seq_len):
+            set_rnn_inputs(m, X_train_batch, begin=begin)
             m.rnn_exec.forward(is_train=True)
             # probability of each label class, used to evaluate nll
             # Change back to individual ops to see if fine grained scheduling helps.
@@ -324,6 +298,10 @@ def train_lstm(model, X_train_batch, X_val_batch,
                 seq_loss = [x.copyto(mx.cpu()) for x in m.seq_outputs]
                 m.rnn_exec.backward(head_grad)
 
+            # transfer the states
+            for init, last in zip(m.init_states, m.last_states):
+                last.c.copyto(init.c)
+                last.h.copyto(init.h)
             # update epoch counter
             epoch_counter += 1
             if epoch_counter % update_period == 0:
@@ -342,13 +320,13 @@ def train_lstm(model, X_train_batch, X_val_batch,
                     grad[:] = 0.0
             if not use_loss:
                 if concat_decode:
-                    train_nll += calc_nll_concat(seq_label_probs, batch_size)
+                    train_nll += calc_nll_concat(seq_label_probs, X_val_batch, begin=begin)
                 else:
-                    train_nll += calc_nll(seq_label_probs, batch_size, batch_seq_length)
+                    train_nll += calc_nll(seq_label_probs, X_val_batch, begin=begin)
             else:
                 train_nll += sum([x.asscalar() for x in seq_loss]) / batch_size
 
-            nbatch += batch_size
+            nbatch = begin + seq_len
             toc = time.time()
             if epoch_counter % log_period == 0:
                 print("Iter [%d] Train: Time: %.3f sec, NLL=%.3f, Perp=%.3f" % (
@@ -359,20 +337,15 @@ def train_lstm(model, X_train_batch, X_val_batch,
             iteration, toc - tic, train_nll / nbatch, np.exp(train_nll / nbatch)))
 
         val_nll = 0.0
-        nbatch = 0
-        for data_batch in X_val_batch:
-            batch_seq_length = data_batch.bucket_key
-            m = model[batch_seq_length]
-
-            # validation set, reset states
-            for state in m.init_states:
-                state.h[:] = 0.0
-                state.c[:] = 0.0
-
-            set_rnn_inputs_from_batch(m, data_batch, batch_seq_length, batch_size)
+        # validation set, reset states
+        for state in m.init_states:
+            state.c[:] = 0.0
+            state.h[:] = 0.0
+        for begin in range(0, X_val_batch.shape[0], seq_len):
+            set_rnn_inputs(m, X_val_batch, begin=begin)
             m.rnn_exec.forward(is_train=False)
-
             # probability of each label class, used to evaluate nll
+
             if not use_loss:
                 if concat_decode:
                     seq_label_probs = mx.nd.choose_element_0index(m.seq_outputs[0], m.seq_labels[0])
@@ -382,15 +355,19 @@ def train_lstm(model, X_train_batch, X_val_batch,
             else:
                 seq_loss = [x.copyto(mx.cpu()) for x in m.seq_outputs]
 
+            # transfer the states
+            for init, last in zip(m.init_states, m.last_states):
+                last.c.copyto(init.c)
+                last.h.copyto(init.h)
             if not use_loss:
                 if concat_decode:
-                    val_nll += calc_nll_concat(seq_label_probs, batch_size)
+                    val_nll += calc_nll_concat(seq_label_probs, X_val_batch, begin=begin)
                 else:
-                    val_nll += calc_nll(seq_label_probs, batch_size, batch_seq_length)
+                    val_nll += calc_nll(seq_label_probs, X_val_batch, begin=begin)
             else:
                 val_nll += sum([x.asscalar() for x in seq_loss]) / batch_size
-            nbatch += batch_size
-            
+
+        nbatch = X_val_batch.shape[0]
         perp = np.exp(val_nll / nbatch)
         print("Iter [%d] Val: NLL=%.3f, Perp=%.3f" % (
             iteration, val_nll / nbatch, np.exp(val_nll / nbatch)))
@@ -398,10 +375,7 @@ def train_lstm(model, X_train_batch, X_val_batch,
             opt.lr *= 0.5
             print("Reset learning rate to %g" % opt.lr)
         last_perp = perp
-        X_val_batch.reset()
-        X_train_batch.reset()
 
-# is this function being used? 
 def setup_rnn_sample_model(ctx,
                            params,
                            num_lstm_layer,

@@ -31,8 +31,7 @@ class ModelParallelSuite extends FunSuite with BeforeAndAfterAll {
       argsGrad = arrGrad,
       gradReq = "write",
       auxStates = Nil,
-      group2ctx = Map("dev1" -> Context.cpu(0), "dev2" -> Context.cpu(1)),
-      sharedExec = null)
+      group2ctx = Map("dev1" -> Context.cpu(0), "dev2" -> Context.cpu(1)))
 
     arr(0).set(1f)
     arr(1).set(2f)

@@ -33,8 +33,6 @@ other. The modules are
   graph execution and optimization.
 - [Operator](operator.md): Operators that defines static forward and gradient
   calculation(backprop).
-- [SimpleOp](operator_util.md): Operators that extend to NDArray operators and symbolic operators
-  in a unified fashion.
 - Symbol Construction: Symbolic construction, provide a way to construct
   computation graph(net configuration)
 - [KVStore](multi_node.md): Key-value store interface for easy parameter synchronizations.
@@ -77,7 +75,6 @@ Documents of Each Module
 ------------------------
 * [Runtime Dependency Engine](engine.md)
 * [Operators](operator.md)
-* [SimpleOp](operator_util.md)
 -
 
 List of Other Resources

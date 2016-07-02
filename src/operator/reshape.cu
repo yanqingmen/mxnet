@@ -11,12 +11,8 @@
 namespace mxnet {
 namespace op {
 template<>
-Operator *CreateOp<gpu>(ReshapeParam param, int dtype) {
-  Operator *op = NULL;
-  MSHADOW_REAL_TYPE_SWITCH(dtype, DType, {
-    op = new ReshapeOp<gpu, DType>(param);
-  });
-  return op;
+Operator *CreateOp<gpu>(ReshapeParam param) {
+  return new ReshapeOp<gpu>(param);
 }
 
 }  // namespace op

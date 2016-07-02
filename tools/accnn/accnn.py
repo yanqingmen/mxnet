@@ -29,10 +29,10 @@ else:
 
 new_model = model
 Args = collections.namedtuple('ConvArgs', 'layer K')
-for layer, K in args.config['conv_params'].items():
+for layer, K in args.config['conv_params'].iteritems():
   arg = Args(layer=layer, K=K)  
   new_model = acc_conv.conv_vh_decomposition(new_model, arg)
-for layer, K in args.config['fc_params'].items():
+for layer, K in args.config['fc_params'].iteritems():
   arg = Args(layer=layer, K=K)  
   new_model = acc_fc.fc_decomposition(new_model, arg)
 new_model.save(args.save_model, 1)
